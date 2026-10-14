@@ -31,7 +31,7 @@ interface GuideStep {
   extra?: React.ReactNode;
 }
 
-const GUIDE_FILE = 'UNIVERSAL_EDUCATIONAL_SIMULATION_PROMPT_GUIDE_v10.md';
+const GUIDE_FILE = 'UNIVERSAL_EDUCATIONAL_SIMULATION_PROMPT_GUIDE_v17.md';
 const GUIDE_FILE_EN = 'UNIVERSAL_EDUCATIONAL_SIMULATION_PROMPT_GUIDE_v10.1_EN.md';
 
 export const SimulationGuide: React.FC<SimulationGuideProps> = ({ lang, onSubmit }) => {
@@ -59,7 +59,7 @@ export const SimulationGuide: React.FC<SimulationGuideProps> = ({ lang, onSubmit
               className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm shadow-emerald-500/20 transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>GUIDE v10</span>
+              <span>GUIDE v17</span>
             </a>
             <a
               href={'/' + GUIDE_FILE}
@@ -68,7 +68,7 @@ export const SimulationGuide: React.FC<SimulationGuideProps> = ({ lang, onSubmit
               className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition-all cursor-pointer"
             >
               <Globe className="w-3.5 h-3.5" />
-              <span className="font-mono text-[10px]">v10.md</span>
+              <span className="font-mono text-[10px]">v17.md</span>
             </a>
           </div>
         </div>
