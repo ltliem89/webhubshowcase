@@ -1529,6 +1529,70 @@ deploy_profile:
 
 Thiếu bảng từ điển song ngữ hoặc thiếu `L[lang]` = SPEC chưa hợp lệ V10.
 
+### 8.1a. VERCEL DEPLOY-SAFETY ADDENDUM — CHỈ BỔ SUNG VÀO SPEC ĐẦU RA
+
+**Phạm vi thay đổi:** Quy tắc này chỉ bổ sung yêu cầu cho nội dung của `SIM_[PROJECT_NAME]_SPEC.md` được tạo ra. Không thay thế, bỏ, rút gọn hoặc thay đổi bất kỳ bảng, cổng xác nhận, trạng thái PROJECT STATE, bước nghiên cứu, tiêu chí khoa học/sư phạm, quy trình kiểm thử, GitHub hay Vercel nào đã có trong B22.
+
+Mục tiêu là hướng dẫn Google AI Studio Build tạo mã nguồn phù hợp với Vercel và tránh lỗi cài đặt dependency như `npm ERESOLVE`/`Conflicting peer dependency`.
+
+#### A. Quy tắc kiến trúc khi SPEC được sinh ra
+- **Ưu tiên phương án static `index.html` duy nhất** theo mặc định đã có trong B22 nếu mô phỏng có thể đáp ứng đầy đủ yêu cầu mà không cần framework. Khi đó không sinh `package.json`, Vite, React, Tailwind build plugin hoặc dependency không cần thiết; không tạo backend/API key/secret chỉ để hoàn thành giao diện.
+- Chỉ yêu cầu React/Vite hoặc công cụ build khi có lý do chức năng rõ ràng trong SPEC. Không tự thêm thư viện chỉ để trang trí hoặc vì thói quen.
+- Không tự nâng cấp framework/plugin lên major version mới, không dùng nhãn `latest`, và không phối hợp các phiên bản chỉ dựa trên phỏng đoán. Các phiên bản phải tương thích theo peer-dependency ranges của chính các gói được chọn.
+
+#### B. Hợp đồng dependency/build phải ghi trong SPEC nếu dùng framework
+SPEC phải ghi rõ, không để Google AI Studio tự suy đoán:
+1. Phiên bản Node.js và package manager mục tiêu, phù hợp với Vercel.
+2. Các dependency trực tiếp thực sự cần dùng, vai trò và phiên bản/range đã xác minh.
+3. Tương thích giữa framework, plugin và công cụ build. Ví dụ, nếu dùng `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite`, `tailwindcss`, `esbuild` hoặc `tsx`, phải xác định gói nào thật sự cần và kiểm tra các peer-dependency ranges; không thêm chúng đồng loạt theo mẫu.
+4. Các script thực tế trong `package.json`, gồm lệnh cài đặt và `build`; xác định entrypoint và output directory (Vite thường là `dist`, nhưng phải khớp cấu hình thực tế).
+5. Quy tắc giữ `package.json` và lockfile đồng bộ. Không tự viết lockfile bằng tay, không xóa lockfile để né xung đột và không cam kết `npm ci` thành công nếu chưa kiểm tra.
+
+#### C. Chỉ dẫn bắt buộc đặt trong BUILD PROMPT gửi Google AI Studio
+Thêm các yêu cầu sau vào BUILD PROMPT của SPEC khi sinh mã nguồn:
+
+```text
+VERCEL DEPLOY-SAFETY REQUIREMENTS
+1. Follow the SPEC exactly. Preserve all educational, scientific, interaction, accessibility,
+   responsive-layout, and language requirements.
+2. Prefer a self-contained static index.html with no build dependencies when it fully satisfies
+   the requirements. Do not introduce React, Vite, Tailwind build plugins, esbuild, tsx, or
+   other packages unless they are necessary for the specified features.
+3. If a framework/build tool is necessary, use mutually compatible, explicitly specified
+   dependency versions. Verify peer-dependency ranges across the framework, plugins, and build
+   tools before finalizing package.json. Do not use "latest" or guess compatibility.
+4. Keep package.json, the package-manager lockfile, build scripts, Node.js target, entrypoint,
+   and Vercel output directory consistent. Do not hand-edit the lockfile.
+5. Configure Vercel for the actual project type: static projects must not require a build command
+   or output folder that does not exist; framework projects must use the real build command and
+   output directory (for example, "npm run build" and "dist" only when the configuration matches).
+6. Before claiming the project is deploy-ready, run the available install and production-build
+   checks. Prefer a clean install from a valid lockfile (npm ci when applicable), then run the
+   declared build command. Report the exact commands and results; never claim PASS without evidence.
+7. If npm reports ERESOLVE or a conflicting peer dependency, treat it as a blocking error:
+   inspect the full error and dependency tree, then align compatible versions or remove an
+   unnecessary package and regenerate the lockfile with the package manager. Do not use
+   --force or --legacy-peer-deps as the default fix, and do not hide the conflict.
+8. Do not mark Vercel deployment as verified until the production build and deployment checks
+   actually pass. Distinguish NOT RUN, BLOCKED, FAIL, and PASS.
+```
+
+#### D. Dependency/build acceptance checks trong SPEC đầu ra
+Nếu SPEC yêu cầu framework/package manager, thêm các test kỹ thuật sau vào `acceptance_tests`/QA:
+- `package.json` hợp lệ; các script được gọi đều tồn tại.
+- Phiên bản framework, plugin và công cụ build thỏa mãn peer-dependency ranges.
+- Lockfile phù hợp với manifest; clean install được chạy khi môi trường cho phép.
+- Lệnh production build hoàn tất và output directory có thật, đúng với cấu hình Vercel.
+- Entrypoint, asset paths và routing hoạt động khi deploy; không phụ thuộc đường dẫn máy cục bộ.
+- Không có secret/API key riêng tư nhúng vào mã phía trình duyệt.
+- Ghi bằng chứng thực tế cho từng kết quả; nếu không thể chạy kiểm tra, đánh dấu `NOT RUN` chứ không giả lập `PASS`.
+
+Nếu chọn static `index.html` và không dùng package manager, ghi rõ `build_required: false`, `framework: none`, `entrypoint: index.html`, `backend_required: false` và kiểm tra các đường dẫn/asset để triển khai static.
+
+**Giới hạn xác minh:** Hướng dẫn này làm giảm nguy cơ sinh ra cấu hình không tương thích; không thể bảo đảm deploy thành công chỉ từ SPEC. Chỉ được kết luận đã kiểm chứng khi mã nguồn thực tế vượt qua các lệnh cài đặt/build và các kiểm tra deploy tương ứng.
+
+---
+
 ### 8.1. BUILD PROMPT + BẢNG GIÁ TRỊ KỲ VỌNG — HAI MẢNH "RA LÒ" KÈM SPEC
 
 Hai mảnh này **sinh ra cùng SPEC**, là thứ thực sự "ra lò" sang AI Studio phục vụ
