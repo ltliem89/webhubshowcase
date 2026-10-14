@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -271,6 +271,9 @@ export default function App() {
     };
   }, []);
 
+  // Trạng thái đồng bộ dữ liệu đám mây (background non-blocking sync)
+  const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
+
   // 4. View Mode & Filter State
   const [viewMode, setViewMode] = useState<ViewMode>('expanded');
   const [filters, setFilters] = useState<FilterState>({
@@ -369,7 +372,8 @@ export default function App() {
   useEffect(() => {
     const scriptUrl = getStoredScriptUrl();
     if (scriptUrl && isAutoSyncEnabled()) {
-      fetchProjectsFromSheet(scriptUrl)
+      setIsCloudSyncing(true);
+      const syncApprovedPromise = fetchProjectsFromSheet(scriptUrl)
         .then((result) => {
           if (!result.success || !result.data || result.data.length === 0) return;
           setProjects((prev) => {
@@ -408,7 +412,10 @@ export default function App() {
           console.warn('Background Google Sheets sync notice:', err);
         });
       // Äá»“ng thá»i kĂ©o danh sĂ¡ch bĂ i chá» duyá»‡t tá»« Ä‘Ă¡m mĂ¢y vá»
-      syncPendingFromCloud();
+      const syncPendingPromise = syncPendingFromCloud();
+      Promise.allSettled([syncApprovedPromise, syncPendingPromise]).finally(() => {
+        setIsCloudSyncing(false);
+      });
     }
   }, [syncPendingFromCloud]);
 
@@ -732,6 +739,7 @@ const handleUpdateProject = (updated: WebProject) => {
         onOpenAdmin={() => setIsAdminOpen(true)}
         onOpenSubmit={handleOpenSubmitNew}
         pendingCount={pendingCount}
+        isCloudSyncing={isCloudSyncing}
       />
 
       {/* Main Container */}

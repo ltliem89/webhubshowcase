@@ -44,3 +44,13 @@ body {
   50% { transform: scale(1.18, 0.92); opacity: 0.85; }
 }
 
+/* Accessibility: Tôn trọng cài đặt giảm chuyển động của hệ điều hành */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-rocket,
+  .rocket-flame-ember {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+

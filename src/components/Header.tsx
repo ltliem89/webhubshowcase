@@ -5,6 +5,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   ChevronDown,
+  RefreshCw,
 } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../translations';
@@ -18,6 +19,7 @@ interface HeaderProps {
   onOpenAdmin: () => void;
   onOpenSubmit: () => void;
   pendingCount: number;
+  isCloudSyncing?: boolean;
 }
 
 const languages: { code: Language; name: string; flag: string }[] = [
@@ -42,6 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAdmin,
   onOpenSubmit,
   pendingCount,
+  isCloudSyncing = false,
 }) => {
   const t = translations[lang];
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -89,6 +92,19 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action controls */}
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            {/* Background cloud sync non-intrusive indicator */}
+            {isCloudSyncing && (
+              <div
+                className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-50/90 border border-indigo-200/70 text-indigo-700 text-xs font-semibold animate-fade-in select-none"
+                title={t.amSyncing}
+                role="status"
+                aria-live="polite"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+                <span className="hidden md:inline">{t.amSyncing}</span>
+              </div>
+            )}
+
             {/* Language Switcher Dropdown */}
             <div className="relative">
               <button

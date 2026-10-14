@@ -27,12 +27,18 @@ export const BrowserMockupFrame: React.FC<BrowserMockupFrameProps> = ({
 }) => {
   const t = translations[lang];
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const domain = extractDomain(displayUrl || url);
   // Không dùng preview do mshots sinh theo URL thật (nó chứa link gốc trong URL ảnh).
   // Sinh lại thumbnail từ link nội bộ /go/<code> → mshots chụp trang sau 302 redirect,
   // chỉ lộ domain nội bộ chứ không lộ domain mô phỏng thật.
   const safePreview = !isMshotsTimingThumbnail(previewImage) ? previewImage : undefined;
   const screenshotUrl = getWebsiteScreenshotUrl(displayUrl || url, safePreview);
+
+  React.useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+  }, [screenshotUrl]);
 
   const aspectClass =
     aspectRatio === 'wide'
@@ -70,14 +76,30 @@ export const BrowserMockupFrame: React.FC<BrowserMockupFrameProps> = ({
       {/* Website Viewport simulation */}
       <div className={`relative w-full ${aspectClass} bg-slate-900 overflow-hidden`}>
         {!imageError && screenshotUrl ? (
-          <img
-            src={screenshotUrl}
-            alt={title}
-            onError={() => setImageError(true)}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-          />
+          <>
+            {!imageLoaded && (
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-400 select-none z-5"
+                aria-hidden="true"
+              >
+                <div className="w-5 h-5 border-2 border-indigo-400/25 border-t-indigo-400 rounded-full animate-spin mb-1.5" />
+                <span className="text-[10px] text-slate-400 font-medium tracking-wide">
+                  {lang === 'vi' ? 'Đang tải...' : 'Loading...'}
+                </span>
+              </div>
+            )}
+            <img
+              src={screenshotUrl}
+              alt={title}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className={`w-full h-full object-cover object-top transition-all duration-500 group-hover:scale-105 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          </>
         ) : (
           /* Fallback sleek simulated screen */
           <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white">
