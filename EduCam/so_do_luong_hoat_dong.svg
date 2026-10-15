@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%" style="background:#f8fafc; font-family:'Plus Jakarta Sans', system-ui, sans-serif;">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.08" />
+    </filter>
+    <linearGradient id="gradIndigo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#4f46e5" />
+    </marker>
+  </defs>
+
+  <!-- Tiêu đề sơ đồ -->
+  <text x="500" y="45" text-anchor="middle" font-size="22" font-weight="800" fill="#0f172a">SƠ ĐỒ LUỒNG HOẠT ĐỘNG TỔNG THỂ WEBSHARE-PMCA</text>
+  <text x="500" y="70" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">Quy trình nộp bài, kiểm duyệt, bảo vệ link che và trải nghiệm học sinh trong lớp học</text>
+
+  <!-- Node 1: Tác giả nộp bài -->
+  <g transform="translate(100, 100)" filter="url(#shadow)">
+    <rect width="800" height="85" rx="16" fill="#ffffff" stroke="#4f46e5" stroke-width="2" />
+    <rect width="8" height="85" rx="4" fill="#4f46e5" />
+    <circle cx="45" cy="42" r="22" fill="#e0e7ff" />
+    <text x="45" y="48" text-anchor="middle" font-size="20">👨‍🏫</text>
+    <text x="85" y="36" font-size="16" font-weight="800" fill="#1e1b4b">BƯỚC 1: TÁC GIẢ ĐĂNG TẢI SẢN PHẨM (SubmitModal)</text>
+    <text x="85" y="60" font-size="13" font-weight="500" fill="#475569">Người dùng điền link web, môn học, cấp học → Hệ thống tự sinh goLink &amp; mã hóa URL bằng XOR bitwise</text>
+  </g>
+  <line x1="500" y1="185" x2="500" y2="215" stroke="#4f46e5" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- Node 2: Hàng đợi xét duyệt -->
+  <g transform="translate(100, 220)" filter="url(#shadow)">
+    <rect width="800" height="85" rx="16" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+    <rect width="8" height="85" rx="4" fill="#7c3aed" />
+    <circle cx="45" cy="42" r="22" fill="#ede9fe" />
+    <text x="45" y="48" text-anchor="middle" font-size="20">☁️</text>
+    <text x="85" y="36" font-size="16" font-weight="800" fill="#3b0764">BƯỚC 2: HÀNG ĐỢI XÉT DUYỆT (Google Cloud Sheets)</text>
+    <text x="85" y="60" font-size="13" font-weight="500" fill="#475569">Đẩy bản ghi an toàn lên Google Sheets qua Apps Script Web App API (Lưu trạng thái Pending chờ duyệt)</text>
+  </g>
+  <line x1="500" y1="305" x2="500" y2="335" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- Node 3: Admin kiểm duyệt -->
+  <g transform="translate(100, 340)" filter="url(#shadow)">
+    <rect width="800" height="85" rx="16" fill="#ffffff" stroke="#d97706" stroke-width="2" />
+    <rect width="8" height="85" rx="4" fill="#d97706" />
+    <circle cx="45" cy="42" r="22" fill="#fef3c7" />
+    <text x="45" y="48" text-anchor="middle" font-size="20">🛡️</text>
+    <text x="85" y="36" font-size="16" font-weight="800" fill="#78350f">BƯỚC 3: QUẢN TRỊ VIÊN KIỂM DUYỆT (Admin Portal @1122@)</text>
+    <text x="85" y="60" font-size="13" font-weight="500" fill="#475569">Admin đăng nhập, kiểm tra an toàn mã độc, duyệt bài (Approved) chuyển sang bảng dữ liệu chính thức</text>
+  </g>
+  <line x1="500" y1="425" x2="500" y2="455" stroke="#d97706" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- Node 4: Xuất bản & QR Code -->
+  <g transform="translate(100, 460)" filter="url(#shadow)">
+    <rect width="800" height="85" rx="16" fill="#ffffff" stroke="#059669" stroke-width="2" />
+    <rect width="8" height="85" rx="4" fill="#059669" />
+    <circle cx="45" cy="42" r="22" fill="#ecfdf5" />
+    <text x="45" y="48" text-anchor="middle" font-size="20">📱</text>
+    <text x="85" y="36" font-size="16" font-weight="800" fill="#064e3b">BƯỚC 4: XUẤT BẢN CỘNG ĐỒNG &amp; MÃ QR TỨC THÌ</text>
+    <text x="85" y="60" font-size="13" font-weight="500" fill="#475569">Hiển thị thẻ mô phỏng trên feed, phân loại 12 môn học, tạo mã QR tự động để chiếu lên máy chiếu lớp học</text>
+  </g>
+  <line x1="500" y1="545" x2="500" y2="575" stroke="#059669" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- Node 5: Trải nghiệm an toàn -->
+  <g transform="translate(100, 580)" filter="url(#shadow)">
+    <rect width="800" height="85" rx="16" fill="#ffffff" stroke="#0f172a" stroke-width="2" />
+    <rect width="8" height="85" rx="4" fill="#0f172a" />
+    <circle cx="45" cy="42" r="22" fill="#f1f5f9" />
+    <text x="45" y="48" text-anchor="middle" font-size="20">🚀</text>
+    <text x="85" y="36" font-size="16" font-weight="800" fill="#0f172a">BƯỚC 5: HỌC SINH TRẢI NGHIỆM AN TOÀN (/go/code Brand Frame)</text>
+    <text x="85" y="60" font-size="13" font-weight="500" fill="#475569">Vercel giải mã Serverless, chạy iframe toàn màn hình, vinh danh tác giả và GIẤU KÍN 100% URL GỐC</text>
+  </g>
+</svg>
