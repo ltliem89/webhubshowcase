@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertCircle,
   Check,
@@ -102,7 +102,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const cleanId = adminId.trim();
     const cleanPass = password.trim();
 
-    const isPasswordValid = cleanPass === '1122@' || cleanPass === 'admin123';
+    const isPasswordValid = cleanPass === '@1122@';
     const isIdValid = cleanId.length > 0;
 
     if (isPasswordValid && isIdValid) {
