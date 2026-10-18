@@ -299,7 +299,7 @@ def add_title_page(doc):
         ("Tác giả phát triển:", "LÊ THANH LIÊM"),
         ("Lĩnh vực nghiên cứu:", "Giáo dục STEM · Công nghệ Trí tuệ nhân tạo (AI)"),
         ("Đơn vị công tác:", "Cần Thơ, Việt Nam"),
-        ("Tài liệu tích hợp:", "SimBot Universal Prompt Guide v24"),
+        ("Tài liệu tích hợp:", "SimBot Universal Prompt Guide v26"),
         ("Địa chỉ truy cập:", "https://webshare-pmca.vercel.app")
     ]
     for lbl, val in fields:
@@ -646,25 +646,25 @@ def build_full_thesis():
     # ---------------------------------------------------------
     # CHƯƠNG 5
     # ---------------------------------------------------------
-    p_chapter("CHƯƠNG 5: HỆ THỐNG CẨM NANG AI V24 VÀ HỖ TRỢ ĐA NGÔN NGỮ ĐÔNG NAM Á")
+    p_chapter("CHƯƠNG 5: HỆ THỐNG CẨM NANG AI V26 VÀ HỖ TRỢ ĐA NGÔN NGỮ ĐÔNG NAM Á")
     
-    p_h1("5.1. Tích hợp cẩm nang SimBot Universal Prompt Guide v24")
-    p_body("Webshare-PMCA tích hợp trực tiếp bản hướng dẫn độc quyền SIMBOT_UNIVERSAL_PROMPT_GUIDE_V24.md, đóng vai trò là 'bộ não điều khiển' giúp giáo viên hợp tác cùng AI để tạo ra các mô phỏng chuẩn mực quốc tế:")
+    p_h1("5.1. Tích hợp cẩm nang SimBot Universal Prompt Guide v26")
+    p_body("Webshare-PMCA tích hợp trực tiếp bản hướng dẫn độc quyền SIMBOT_UNIVERSAL_PROMPT_GUIDE_V26.md, đóng vai trò là 'bộ não điều khiển' giúp giáo viên hợp tác cùng AI để tạo ra các mô phỏng chuẩn mực quốc tế:")
     
     steps_guide = [
         ("Bước 1", "Lắng nghe nỗi đau học sinh", "Xác định các khái niệm trừu tượng, khó hiểu mà phương pháp dạy học truyền thống chưa truyền tải hiệu quả."),
         ("Bước 2", "Thu thập kiến thức nguồn", "Cung cấp tài liệu giáo khoa, định luật vật lý, công thức toán học chuẩn xác làm ngữ cảnh cho AI."),
-        ("Bước 3", "Tải Prompt Guide v24", "Tải tệp cẩm nang chuẩn (.md) từ hệ thống làm kim chỉ nam điều khiển quy trình tư duy của AI."),
+        ("Bước 3", "Tải Prompt Guide v26", "Tải tệp cẩm nang chuẩn (.md) từ hệ thống làm kim chỉ nam điều khiển quy trình tư duy của AI."),
         ("Bước 4", "Trao quyền cho AI", "Khởi động phiên làm việc, cấp quyền cho AI tự động đặt câu hỏi khảo sát và xây dựng bản thiết kế ROM."),
         ("Bước 5", "Tạo app với AI Studio", "Lắp ráp giao diện tương tác, thanh điều khiển, canvas 2D/3D trên nền tảng Google AI Studio."),
         ("Bước 6", "Kiểm thử sư phạm", "Rà soát tính chính xác của công thức khoa học, trải nghiệm người dùng và tính tương thích trên thiết bị di động."),
         ("Bước 7", "Lưu trữ mã nguồn", "Xuất mã nguồn và lưu trữ dự án an toàn trên nền tảng quản lý phiên bản GitHub."),
         ("Bước 8", "Xuất bản lên Vercel", "Triển khai ứng dụng lên đám mây Vercel và chia sẻ ngược lại lên cộng đồng Webshare-PMCA.")
     ]
-    add_table_custom(["Thứ tự", "Tên bước quy trình", "Mục tiêu và hành động chính"], steps_guide, "Bảng 5.1: Quy trình 8 bước kiến tạo mô phỏng giáo dục theo chuẩn SimBot v24")
+    add_table_custom(["Thứ tự", "Tên bước quy trình", "Mục tiêu và hành động chính"], steps_guide, "Bảng 5.1: Quy trình 8 bước kiến tạo mô phỏng giáo dục theo chuẩn SimBot v26")
     
-    p_h1("5.2. Chuẩn điều hướng không gian mô phỏng linh hoạt (v24 Specification)")
-    p_body("Điểm nâng cấp mang tính đột phá của phiên bản v24 là việc chuẩn hóa không gian làm việc mô phỏng linh hoạt (Flexible Workspace Navigation). Các sản phẩm đạt chuẩn v24 bắt buộc phải hỗ trợ các tính năng điều hướng chuyên nghiệp:")
+    p_h1("5.2. Chuẩn điều hướng không gian mô phỏng linh hoạt (v26 Specification)")
+    p_body("Điểm nâng cấp mang tính đột phá của phiên bản v26 là việc chuẩn hóa không gian làm việc mô phỏng linh hoạt (Flexible Workspace Navigation). Các sản phẩm đạt chuẩn v26 bắt buộc phải hỗ trợ các tính năng điều hướng chuyên nghiệp:")
     p_body("Zoom & Pan: Cho phép phóng to, thu nhỏ và di chuyển vùng quan sát mượt mà bằng con trỏ chuột hoặc thao tác chạm hai ngón tay trên màn hình cảm ứng.", "•")
     p_body("Fit-to-View & Reset: Cung cấp nút định tâm nhanh giúp đưa toàn bộ thí nghiệm về góc nhìn tối ưu ban đầu khi người học thao tác quá mức.", "•")
     p_body("Direct Object Manipulation: Cho phép người học cầm nắm, kéo thả các vật thể thí nghiệm trực tiếp trên không gian mô phỏng.", "•")
@@ -696,7 +696,7 @@ def build_full_thesis():
     p_body("Xây dựng thành công nền tảng WebHub Showcase hoàn chỉnh, ổn định và thẩm mỹ cao, phục vụ hiệu quả nhu cầu học tập và giảng dạy trực quan.", "1.")
     p_body("Thiết lập thành công giải pháp link che /go/<code> độc quyền, bảo vệ an toàn 100% URL gốc của các tác giả tham gia đóng góp sản phẩm.", "2.")
     p_body("Triển khai quy trình tạo và quét mã QR tức thì, xóa bỏ rào cản kỹ thuật trong các giờ dạy học ứng dụng công nghệ tại lớp học.", "3.")
-    p_body("Đồng bộ hóa cẩm nang SimBot Universal Prompt Guide v24 và hệ sinh thái đa ngôn ngữ 10 nước Đông Nam Á, nâng tầm sản phẩm thành một nền tảng giáo dục mang tầm vóc khu vực.", "4.")
+    p_body("Đồng bộ hóa cẩm nang SimBot Universal Prompt Guide v26 và hệ sinh thái đa ngôn ngữ 10 nước Đông Nam Á, nâng tầm sản phẩm thành một nền tảng giáo dục mang tầm vóc khu vực.", "4.")
     p_body("Củng cố vững chắc an ninh hệ thống: kho lưu trữ GitHub được bảo vệ ở chế độ Private, mật khẩu quản trị @1122@ được bảo mật nghiêm ngặt.", "5.")
     
     p_h1("6.2. Hạn chế hiện tại và bài học kinh nghiệm")
@@ -723,7 +723,7 @@ def build_full_thesis():
     
     refs = [
         "[1] Bộ Giáo dục và Đào tạo (2018), Chương trình Giáo dục phổ thông 2018 - Hoạt động trải nghiệm và giáo dục STEM, Nhà xuất bản Giáo dục Việt Nam.",
-        "[2] Lê Thanh Liêm (2026), SimBot Universal Prompt Guide v24: Cẩm nang toàn năng kiến tạo ứng dụng mô phỏng giáo dục và thí nghiệm ảo bằng Trí tuệ nhân tạo, Cần Thơ.",
+        "[2] Lê Thanh Liêm (2026), SimBot Universal Prompt Guide v26: Cẩm nang toàn năng kiến tạo ứng dụng mô phỏng giáo dục và thí nghiệm ảo bằng Trí tuệ nhân tạo, Cần Thơ.",
         "[3] PhET Interactive Simulations (2026), Research Base for PhET Simulations, University of Colorado Boulder, truy cập tại: https://phet.colorado.edu.",
         "[4] Vercel Inc. (2025), Serverless Functions Architecture and Deployment Patterns, Vercel Documentation.",
         "[5] Google Developers (2025), Google Apps Script Web Apps Guide & Sheets API Integration, Google Cloud Documentation.",

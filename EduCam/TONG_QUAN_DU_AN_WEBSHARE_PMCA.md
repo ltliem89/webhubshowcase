@@ -1,6 +1,6 @@
 # TỔNG QUAN DỰ ÁN WEBSHARE-PMCA (WEBHUB SHOWCASE)
 **Nền tảng Chia sẻ Mô phỏng Giáo dục, Thí nghiệm Ảo và Website Học tập Số**  
-*Phiên bản tài liệu: 2026.10 • Cập nhật cùng Prompt Guide v24 & Chuẩn bảo mật mới*
+*Phiên bản tài liệu: 2026.10 • Cập nhật cùng Prompt Guide v26 & Chuẩn bảo mật mới*
 
 ---
 
@@ -45,7 +45,7 @@ Trong kỷ nguyên bùng nổ của AI tạo sinh (Google AI Studio, Gemini, Cha
 * Xây dựng **Cơ chế Link che bảo vệ (`/go/<code>`)**, mã hóa URL gốc bằng thuật toán độc quyền, hiển thị bài nộp trong khung giao diện chuẩn mà không làm lộ URL thật.
 * Tích hợp **Trình tạo mã QR tức thì** cho từng mô phỏng, quét camera là mở bài ngay trong tích tắc.
 * Áp dụng kiến trúc **Serverless + Google Sheets Database** giúp hệ thống chạy mượt mà, lưu trữ dữ liệu vĩnh viễn, đồng bộ đa thiết bị mà hoàn toàn không tốn phí máy chủ.
-* Tích hợp sẵn **SimBot Universal Prompt Guide v24** và hệ thống giao diện **10 ngôn ngữ Đông Nam Á**.
+* Tích hợp sẵn **SimBot Universal Prompt Guide v26** và hệ thống giao diện **10 ngôn ngữ Đông Nam Á**.
 
 ---
 
@@ -210,12 +210,12 @@ Bảo vệ quyền lợi, bản quyền và an toàn thông tin cho người tha
 
 ## 7. HỆ THỐNG CẨM NANG AI & ĐA NGÔN NGỮ ĐÔNG NAM Á
 
-### 7.1. SimBot Universal Prompt Guide v24
-Hệ thống tích hợp trực tiếp phiên bản mới nhất của cẩm nang sáng tạo mô phỏng [SIMBOT_UNIVERSAL_PROMPT_GUIDE_V24.md](file:///c:/Users/ltlie/Documents/GIT-DA/Webshare-PMCA/SIMBOT_UNIVERSAL_PROMPT_GUIDE_V24.md):
+### 7.1. SimBot Universal Prompt Guide v26
+Hệ thống tích hợp trực tiếp phiên bản mới nhất của cẩm nang sáng tạo mô phỏng [SIMBOT_UNIVERSAL_PROMPT_GUIDE_V26.md](file:///c:/Users/ltlie/Documents/GIT-DA/Webshare-PMCA/SIMBOT_UNIVERSAL_PROMPT_GUIDE_V26.md):
 * **Quy trình 8 bước tiêu chuẩn:**
   1. *Lắng nghe nỗi đau học sinh:* Tìm ra khó khăn thực sự trong nhận thức của người học.
   2. *Thu thập kiến thức nguồn:* Cung cấp SGK, tài liệu chuẩn xác.
-  3. *Tải cẩm nang Prompt Guide v24:* Sử dụng làm kim chỉ nam điều khiển AI.
+  3. *Tải cẩm nang Prompt Guide v26:* Sử dụng làm kim chỉ nam điều khiển AI.
   4. *Trao quyền cho AI:* Khởi động chế độ tự động hỏi đáp định hướng của SimBot.
   5. *Tạo app với AI Studio:* Lắp ráp giao diện, công thức, tương tác vật lý/toán học.
   6. *Kiểm thử trực tiếp:* Rà soát lỗi, độ chính xác khoa học và responsive di động.
@@ -264,7 +264,7 @@ Toàn bộ nhãn, thông báo, danh mục môn học, cấp học và hướng d
   ```bash
   npm run build
   ```
-  *(Kết quả được xuất ra thư mục `dist/`, kèm bản sao tự động của file cẩm nang v24).*
+  *(Kết quả được xuất ra thư mục `dist/`, kèm bản sao tự động của file cẩm nang v26).*
 
 ### 8.3. Triển khai Cập nhật lên Vercel
 Nhờ hệ thống CI/CD tự động, mỗi khi có chỉnh sửa trong mã nguồn, bạn chỉ cần thực hiện 3 lệnh Git quen thuộc:
@@ -282,4 +282,4 @@ Hệ thống Vercel sẽ tự động tiếp nhận từ nhánh `main` của Pri
 **Webshare-PMCA** không chỉ là một trang web tổng hợp liên kết, mà là một **Hệ sinh thái Giáo dục Số hoàn chỉnh và an toàn**:
 * Giúp giáo viên tự tin sáng tạo và chia sẻ mà không sợ lộ mã nguồn hay URL gốc.
 * Giúp học sinh tiếp cận kiến thức khoa học trực quan, sinh động qua một thao tác quét mã QR đơn giản.
-* Kết nối tri thức giáo dục xuyên biên giới với chuẩn cẩm nang AI v24 và đa ngôn ngữ Đông Nam Á.
+* Kết nối tri thức giáo dục xuyên biên giới với chuẩn cẩm nang AI v26 và đa ngôn ngữ Đông Nam Á.

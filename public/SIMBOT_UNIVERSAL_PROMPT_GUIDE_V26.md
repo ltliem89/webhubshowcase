@@ -1819,3 +1819,125 @@ B19 consolidates the previous guide into one reusable Markdown master and adds a
 - Added real interactive control requirements and a text fallback for environments that cannot render functional checkboxes.
 - Controls must store selected values; confirmation must not advance the workflow without reading the saved state.
 - Progress messages must distinguish waiting for a file, file successfully read, and actual SPEC file creation.
+
+
+## V25 TARGETED FIX — VITE 8 / TAILWIND / REACT PEER-DEPENDENCY CONFLICT
+
+This is a narrow deployment-reliability correction for the Vercel `npm ERESOLVE` error. Preserve all existing content, educational requirements, workflow gates, project state, simulation behavior, and output rules in this guide. Apply this fix only when the generated project uses Vite/React and the dependency tree reports a peer-dependency conflict.
+
+### Diagnose before changing dependencies
+
+- Do not assume `@tailwindcss/vite@4.3.3` is the conflicting package solely because it appears in the error excerpt. Its reported peer range `^5.2.0 || ^6 || ^7 || ^8` includes Vite 8.
+- Inspect the complete Vercel `eresolve-report.txt` and identify the exact package/version whose `peerDependencies.vite` range excludes the root project's Vite version. The abbreviated line `1 more (@vitejs/plugin-react)` is a clue to inspect `@vitejs/plugin-react`, not proof by itself.
+- For a project using Vite 8, ensure the selected `@vitejs/plugin-react` release explicitly supports Vite 8 (use the 6.x line when applicable). Keep `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite`, and `tailwindcss` on mutually compatible releases. Do not downgrade or remove Tailwind if the simulation uses it.
+- Do not blindly copy a version number from this guide over a newer or different project. Confirm the actual `package.json`, full resolver error, and peer ranges for the versions being installed.
+
+### Minimal repair procedure
+
+1. Inspect `package.json`, the lockfile, `vite.config.*`, and the complete Vercel dependency-resolution report.
+2. Change only the incompatible direct dependency version(s). For Vite 8, update an outdated `@vitejs/plugin-react` 4.x dependency to a Vite-8-compatible release, normally `^6.0.0` or a compatible later 6.x release. Keep `@tailwindcss/vite` and `tailwindcss` aligned on compatible v4 releases if Tailwind v4 is used.
+3. Regenerate the lockfile using the project's package manager after editing `package.json`; do not manually edit the lockfile. Commit `package.json` and the regenerated lockfile together.
+4. Verify with a clean install and production build using the project's package manager. For npm projects with a valid synchronized `package-lock.json`, run:
+   ```bash
+   npm ci
+   npm run build
+   ```
+   If `npm ci` reports that the lockfile and manifest are out of sync, regenerate the lockfile first with `npm install`, then rerun both checks.
+5. Confirm that the build output directory matches Vercel's Output Directory setting (normally `dist` for Vite), and redeploy. Record the exact commands and results.
+
+### Prohibited workarounds and acceptance criteria
+
+- Do not use `npm install --force` or `npm install --legacy-peer-deps` to hide this conflict.
+- Do not claim the fix is complete until the clean install and production build pass, and Vercel reports a successful deployment.
+- If the complete report shows a different incompatible package, repair that package's version range instead of changing unrelated dependencies.
+- Preserve all existing app features, scientific formulas and expected values, bilingual behavior, responsive layout, and working interactions. The dependency repair must not be used as a reason to regenerate or simplify the simulation.
+
+**V25 change scope:** this section is the only added correction; all V24 content above remains unchanged.
+
+
+## V26 HARD LOCK — VERCEL MUST NOT DEPEND ON MANUAL VITE SELECTION
+
+This section is a mandatory, non-optional contract for every AI-generated Vite project and every generated `SPEC.md` that includes Google AI Studio Build → GitHub → Vercel deployment. It specifically prevents `sh: vite: command not found` and prevents the deployment workflow from relying on the user manually selecting the Vite framework in the Vercel interface.
+
+### A. Mandatory project files and dependency contract
+
+The generated project MUST include and verify all of the following before it is considered ready for GitHub/Vercel:
+
+1. A root-level `package.json` in the configured Vercel Root Directory.
+2. A `package.json` script named `build` that invokes the local Vite binary, normally `"build": "vite build"`.
+3. `vite` explicitly declared in `dependencies` or `devDependencies`; never rely on a globally installed Vite binary.
+4. All plugins imported by `vite.config.*` explicitly declared in the same `package.json`, with mutually compatible versions.
+5. Exactly one intended package-manager lockfile committed alongside `package.json` (for npm, `package-lock.json`). The lockfile MUST be regenerated after manifest changes and MUST match the manifest.
+6. A root-level `vercel.json` with explicit Vite build/output configuration, unless the repository is a monorepo; in a monorepo, the file and settings MUST be placed/configured for the actual application root.
+
+### B. Required explicit Vercel configuration
+
+For a standard Vite single-page application using npm and producing the default `dist` directory, the generated repository MUST contain the following `vercel.json` configuration (merge these fields into an existing valid configuration rather than deleting unrelated required settings):
+
+```json
+{
+  "framework": "vite",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}
+```
+
+The AI MUST NOT leave framework detection, build command, install command, or output directory as unspecified assumptions. The explicit `framework: "vite"` setting is required so the project configuration declares the intended framework instead of depending on a manual framework choice in the Vercel UI. If the actual project uses a different package manager, a non-default output directory, or a monorepo, adapt the commands/paths to the verified project structure and state the exact values in the SPEC; do not copy the npm/single-root example blindly.
+
+### C. Mandatory manifest validation
+
+Before producing the final SPEC or declaring the project deployment-ready, the AI MUST inspect the generated `package.json`, lockfile, `vite.config.*`, `vercel.json`, and repository layout. At minimum, verify that the scripts and dependencies are equivalent to this contract:
+
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "<a version compatible with the selected framework plugins>"
+  }
+}
+```
+
+This is a contract example, not a replacement for the full manifest: preserve all other required dependencies and scripts. The AI MUST use real compatible version numbers in the generated project, not leave angle-bracket placeholders in `package.json`. If React is used, verify `@vitejs/plugin-react` is compatible with the chosen Vite version. If Tailwind v4 is used, verify `@tailwindcss/vite` and `tailwindcss` compatibility as well.
+
+### D. Mandatory clean-install/build gate
+
+The AI MUST NOT mark the SPEC, repository, or deployment as complete until it has either executed and passed these checks in the actual project environment or clearly labels them as **NOT RUN / NOT VERIFIED**:
+
+```bash
+npm ci
+npm run build
+```
+
+- If `npm ci` fails because `package-lock.json` is out of sync, run `npm install` after fixing `package.json`, commit the updated lockfile, then rerun `npm ci` and `npm run build`.
+- If the build says `vite: command not found`, check whether `vite` is declared in the correct `package.json`, whether Vercel's Root Directory points to that package, whether the committed lockfile contains Vite, and whether the install step completed successfully. Correct the cause; do not merely change the build command or claim that a retry fixed it.
+- Do not solve this by assuming a globally installed Vite binary, removing the build script, changing to an unrelated framework, or adding `--force` / `--legacy-peer-deps`.
+- Verify the build output actually exists at the configured output directory (`dist` by default) before deployment.
+
+### E. Required Vercel handoff instructions
+
+Every generated SPEC MUST include a concise deployment block that names these exact settings and tells the implementer to verify them in the Vercel project:
+
+- **Root Directory:** the directory containing the app's `package.json` and `vercel.json` (usually `./` for a single-root project).
+- **Framework Preset:** Vite, explicitly configured in `vercel.json` and verified in Vercel Project Settings.
+- **Install Command:** `npm ci` for a synchronized npm lockfile.
+- **Build Command:** `npm run build`.
+- **Output Directory:** `dist`, unless the verified build config uses another directory.
+
+The SPEC MUST distinguish between configuration being present in repository files and settings actually verified in the Vercel dashboard. Do not tell the user that the UI auto-selected Vite unless that was observed. If the Vercel dashboard still asks for manual confirmation, provide the exact values above as a one-time setup step; do not leave the project dependent on an ambiguous default.
+
+### F. Acceptance criteria — all are hard gates
+
+- [ ] The generated project contains the correct `package.json`, synchronized lockfile, and explicit `vercel.json`.
+- [ ] `vite` is a declared local dependency and `npm run build` resolves it from the project.
+- [ ] All Vite plugins satisfy the selected Vite version's peer-dependency ranges.
+- [ ] Clean install (`npm ci`) and production build (`npm run build`) pass, or their status is explicitly marked **NOT RUN / NOT VERIFIED**.
+- [ ] The configured output directory exists after a successful build.
+- [ ] The SPEC gives the exact Vercel Root Directory, Framework Preset, Install Command, Build Command, and Output Directory.
+- [ ] No unrelated content, learning objectives, scientific values, bilingual behavior, UI design, or interactions are removed or simplified to fix deployment.
+
+**V26 enforcement rule:** a SPEC that omits any required configuration or validation above is incomplete and MUST be corrected before it is handed to Google AI Studio Build. Never state that Vercel deployment is fixed until a successful deployment has actually been observed.

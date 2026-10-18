@@ -17,7 +17,7 @@ Tài liệu chi tiết về bối cảnh, vấn đề giải quyết, kiến tr�
 
 Hệ thống tích hợp chuẩn tài liệu hướng dẫn tạo ứng dụng mô phỏng giáo dục bằng AI mới nhất:
 
-👉 **[SIMBOT_UNIVERSAL_PROMPT_GUIDE_V24.md](./SIMBOT_UNIVERSAL_PROMPT_GUIDE_V24.md)**
+👉 **[SIMBOT_UNIVERSAL_PROMPT_GUIDE_V26.md](./SIMBOT_UNIVERSAL_PROMPT_GUIDE_V26.md)**
 
 ---
 

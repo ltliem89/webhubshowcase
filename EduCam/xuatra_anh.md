@@ -9,7 +9,7 @@
 2. [SƠ ĐỒ 1: Sơ Đồ Luồng Hoạt Động Tổng Thể (Overall Workflow)](#2-sơ-đồ-1-sơ-đồ-luồng-hoạt-động-tổng-thể-overall-workflow)
 3. [SƠ ĐỒ 2: Sơ Đồ Kiến Trúc Hệ Thống Đa Tầng (Multi-tier Architecture)](#3-sơ-đồ-2-sơ-đồ-kiến-trúc-hệ-thống-đa-tầng-multi-tier-architecture)
 4. [SƠ ĐỒ 3: Cơ Chế Link Che & Bảo Vệ URL Gốc (/go/<code> Security Flow)](#4-sơ-đồ-3-cơ-chế-link-che--bảo-vệ-url-gốc-go-security-flow)
-5. [SƠ ĐỒ 4: Chu trình 8 Bước SimBot Universal Prompt Guide v24](#5-sơ-đồ-4-chu-trình-8-bước-simbot-universal-prompt-guide-v24)
+5. [SƠ ĐỒ 4: Chu trình 8 Bước SimBot Universal Prompt Guide v26](#5-sơ-đồ-4-chu-trình-8-bước-simbot-universal-prompt-guide-v24)
 6. [Mã SVG Hoàn Chỉnh Cho Sơ Đồ Luồng Hoạt Động (Copy Dùng Ngay)](#6-mã-svg-hoàn-chỉnh-cho-sơ-đồ-luồng-hoạt-động-copy-dùng-ngay)
 7. [Script Python Tự Động Xuất Ảnh Độ Nét Cao (600 DPI)](#7-script-python-tự-động-xuất-ảnh-độ-nét-cao-600-dpi)
 
@@ -222,10 +222,10 @@ flowchart LR
 
 ### 5.1. Prompt Cho AI Tạo Ảnh
 ```text
-Educational infographic showcasing an 8-step circular or linear progression for building AI simulations named 'SimBot Universal Prompt Guide v24'.
+Educational infographic showcasing an 8-step circular or linear progression for building AI simulations named 'SimBot Universal Prompt Guide v26'.
 Step 1: Listen to Student Needs.
 Step 2: Collect Source Knowledge.
-Step 3: Download Prompt Guide v24 (.md).
+Step 3: Download Prompt Guide v26 (.md).
 Step 4: Empower AI with System Prompt.
 Step 5: Create App with Google AI Studio.
 Step 6: Pedagogical & Mobile Testing.
@@ -241,7 +241,7 @@ timeline
     section GIAI ĐOẠN KHỞI TẠO
         Bước 1 : Lắng nghe nỗi đau học sinh : Khảo sát khái niệm trừu tượng, khó hiểu
         Bước 2 : Thu thập kiến thức nguồn : Cung cấp SGK, định luật, công thức chuẩn xác
-        Bước 3 : Tải Prompt Guide v24 : Tải file .md làm kim chỉ nam điều khiển AI
+        Bước 3 : Tải Prompt Guide v26 : Tải file .md làm kim chỉ nam điều khiển AI
     section GIAI ĐOẠN PHÁT TRIỂN
         Bước 4 : Trao quyền cho AI : Bật chế độ tự động hỏi đáp và thiết kế ROM
         Bước 5 : Tạo app với AI Studio : Lắp ráp giao diện, công thức và canvas mô phỏng
