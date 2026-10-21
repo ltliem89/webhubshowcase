@@ -53,11 +53,11 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-3 sm:gap-6">
+        <div className="flex items-center justify-between min-h-[5.5rem] py-2 sm:py-2.5 gap-3 sm:gap-6">
           {/* Logo & Branding */}
           <div className="flex items-center space-x-3 shrink-0">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-0.5 shadow-md shadow-indigo-500/15 border border-slate-200/90 flex items-center justify-center shrink-0 transition-transform duration-200 hover:scale-105 overflow-hidden">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-lg" />
+            <div className="w-20 h-20 sm:w-[88px] sm:h-[88px] rounded-2xl bg-white p-1 shadow-md shadow-indigo-500/15 border border-slate-200/90 flex items-center justify-center shrink-0 transition-transform duration-200 hover:scale-105 overflow-hidden">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-xl" />
             </div>
             <div>
               <span className="font-extrabold text-slate-900 tracking-tight text-base sm:text-lg">
