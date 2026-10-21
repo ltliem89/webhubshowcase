@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Globe2,
   Search,
   ShieldCheck,
   ShieldAlert,
@@ -57,8 +56,8 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16 gap-3 sm:gap-6">
           {/* Logo & Branding */}
           <div className="flex items-center space-x-3 shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <Globe2 className="w-6 h-6" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-0.5 shadow-md shadow-indigo-500/15 border border-slate-200/90 flex items-center justify-center shrink-0 transition-transform duration-200 hover:scale-105 overflow-hidden">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-lg" />
             </div>
             <div>
               <span className="font-extrabold text-slate-900 tracking-tight text-base sm:text-lg">
