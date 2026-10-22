@@ -34,6 +34,7 @@ export interface WebProject {
   status: 'approved' | 'pending' | 'rejected';
   createdAt: string; // ISO string
   previewImage?: string;
+  previewImageHistory?: string[]; // Lịch sử các ảnh đại diện cũ để truy vấn lại phiên bản
   authorName: string;
   authorContact?: string;
   tags: string[];
