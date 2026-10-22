@@ -22,6 +22,7 @@ export function rowToProject(row: any): WebProject {
     authorContact: row.author_contact || '',
     createdAt: row.created_at || new Date().toISOString(),
     previewImage: row.preview_image || '',
+    previewImageHistory: Array.isArray(row.preview_image_history) ? row.preview_image_history : [],
     tags: Array.isArray(row.tags) ? row.tags : [],
     views: Number(row.views || 0),
     likes: Number(row.likes || 0),
@@ -46,6 +47,7 @@ export function projectToRow(project: WebProject): any {
     author_contact: project.authorContact || '',
     created_at: project.createdAt || new Date().toISOString(),
     preview_image: project.previewImage || '',
+    preview_image_history: project.previewImageHistory || [],
     tags: project.tags || [],
     views: project.views || 0,
     likes: project.likes || 0,
@@ -102,6 +104,7 @@ export async function submitToSupabase(project: WebProject): Promise<boolean> {
     author_contact: project.authorContact || '',
     created_at: new Date().toISOString(),
     preview_image: project.previewImage || '',
+    preview_image_history: project.previewImageHistory || [],
     tags: project.tags || [],
     go_link: project.goLink || '',
   };
