@@ -102,8 +102,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const cleanId = adminId.trim();
     const cleanPass = password.trim();
 
-    const isPasswordValid = cleanPass === '@1122@';
-    const isIdValid = cleanId.length > 0;
+    const isPasswordValid = cleanPass === 'pmca2026';
+    const isIdValid = cleanId.toUpperCase() === 'PMCA2019';
 
     if (isPasswordValid && isIdValid) {
       setIsAdmin(true);
