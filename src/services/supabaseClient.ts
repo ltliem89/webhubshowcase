@@ -58,17 +58,27 @@ export function projectToRow(project: WebProject): any {
 
 // 1. Tải danh sách project đã duyệt
 export async function fetchProjectsFromSupabase(): Promise<WebProject[]> {
-  const { data, error } = await supabase
+  // Lấy từ bảng 'projects'
+  const { data: projects, error: pErr } = await supabase
     .from('projects')
-    .select('*')
+    .select('id, title, url, description, country, category, education_level, status, is_famous, author_name, created_at, preview_image, preview_image_history, tags, views, likes, is_user_submission, go_link')
     .eq('status', 'approved')
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Lỗi tải projects từ Supabase:', error);
+  // Lấy từ bảng 'webhub' (bài cộng đồng)
+  const { data: webhub, error: wErr } = await supabase
+    .from('webhub')
+    .select('id, title, url, description, country, category, education_level, status, is_famous, author_name, created_at, preview_image, preview_image_history, tags, views, likes, is_user_submission, go_link')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+
+  if (pErr || wErr) {
+    console.error('Lỗi tải từ Supabase:', pErr || wErr);
     return [];
   }
-  return (data || []).map(rowToProject);
+  
+  const allProjects = [...(projects || []), ...(webhub || [])];
+  return (allProjects || []).map(rowToProject);
 }
 
 // 2. Tải danh sách submissions (cho Admin duyệt)
