@@ -42,11 +42,16 @@ import {
   supabase,
 } from './services/supabaseClient';
 import {
+  submitProjectToGoogleSheet,
+  fetchSubmissionsFromGoogleSheet,
+  updateProjectStatusOnGoogleSheet,
+} from './services/sheetSubmission';
+import {
   isCommunityApprovedOnly,
   setCommunityApprovedOnly,
 } from './config';
 
-const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v5';
+const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v6';
 const STORAGE_KEY_LANG = 'webhub_language_preference';
 const STORAGE_KEY_ADMIN = 'webhub_admin_session';
 
@@ -264,15 +269,16 @@ export default function App() {
   }, []);
 
   /**
-   * Đồng bộ dữ liệu 2 chiều với Supabase Cloud Database:
+   * Đồng bộ dữ liệu 2 chiều với Supabase Cloud Database & bảng đợi Google Sheet:
    * mezcsiaozymspbroflye.supabase.co
    */
   const syncFromSupabase = useCallback(async () => {
     try {
       setIsCloudSyncing(true);
-      const [cloudProjects, cloudSubs] = await Promise.all([
+      const [cloudProjects, cloudSubs, sheetSubs] = await Promise.all([
         fetchProjectsFromSupabase(),
         fetchSubmissionsFromSupabase(),
+        fetchSubmissionsFromGoogleSheet(),
       ]);
 
       if (cloudProjects && cloudProjects.length > 0) {
@@ -291,6 +297,11 @@ export default function App() {
               map.set(cs.id, cs);
             }
           }
+          for (const ss of sheetSubs) {
+            if (!map.has(ss.id)) {
+              map.set(ss.id, ss);
+            }
+          }
           const finalMerged = sanitizeAndMigrateProjects(Array.from(map.values()));
           try {
             localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(finalMerged));
@@ -299,7 +310,7 @@ export default function App() {
         });
       }
     } catch (err) {
-      console.warn('Supabase sync notice:', err);
+      console.warn('Sync notice:', err);
     } finally {
       setIsCloudSyncing(false);
     }
@@ -373,7 +384,10 @@ export default function App() {
     setProjects((prev) => [newProjectWithGoLink, ...prev]);
     setFilters((prev) => ({ ...prev, onlyFamous: false }));
 
-    // Gửi thẳng vào Supabase
+    // 1. Gửi thẳng vào bảng đợi Google Sheet (WebHub_Submissions)
+    submitProjectToGoogleSheet(newProjectWithGoLink);
+
+    // 2. Gửi lưu trữ bản sao lên Supabase submissions
     submitToSupabase(newProjectWithGoLink);
   };
 
@@ -384,11 +398,15 @@ export default function App() {
     );
 
     if (project) {
-      approveSubmissionInSupabase({
+      const approvedProj: WebProject = {
         ...project,
         status: 'approved',
         isUserSubmission: true,
-      });
+      };
+      // Lưu vào Supabase bảng webhub chính thức
+      approveSubmissionInSupabase(approvedProj);
+      // Cập nhật trạng thái duyệt bài sang Google Sheet
+      updateProjectStatusOnGoogleSheet(id, 'approved');
     }
   };
 
@@ -397,6 +415,7 @@ export default function App() {
       prev.map((p) => (p.id === id ? { ...p, status: 'rejected' } : p))
     );
     rejectSubmissionInSupabase(id);
+    updateProjectStatusOnGoogleSheet(id, 'rejected');
   };
 
   const handleConfirmDelete = (id: string) => {

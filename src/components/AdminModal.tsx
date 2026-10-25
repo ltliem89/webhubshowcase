@@ -134,12 +134,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       await onRefreshPending();
       setPendingSyncMsg({
         type: 'success',
-        text: 'Đã đồng bộ bài chờ duyệt từ Supabase Cloud Database',
+        text: 'Đã đồng bộ bài chờ duyệt từ Google Sheet & Supabase Cloud',
       });
     } catch {
       setPendingSyncMsg({
         type: 'error',
-        text: 'Không thể tải bài chờ duyệt từ Supabase. Hãy kiểm tra kết nối mạng.',
+        text: 'Không thể tải bài chờ duyệt từ Google Sheet/Supabase. Hãy kiểm tra kết nối mạng.',
       });
     } finally {
       setIsPendingSyncing(false);
@@ -360,7 +360,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-colors disabled:opacity-50"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isPendingSyncing ? 'animate-spin' : ''}`} />
-                      <span>{isPendingSyncing ? t.amSyncing : 'Tải bài chờ từ Cloud'}</span>
+                      <span>{isPendingSyncing ? t.amSyncing : 'Tải bài chờ từ Sheet & Cloud'}</span>
                     </button>
                   </div>
 
