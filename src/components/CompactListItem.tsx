@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Pencil, QrCode, Sparkles, Trash2 } from 'lucide-react';
+import { ExternalLink, Pencil, QrCode, Sparkles, Star, Trash2 } from 'lucide-react';
 import { WebProject, Language } from '../types';
 import { translations } from '../translations';
 import { getGoUrl } from '../utils/goLink';
@@ -64,6 +64,15 @@ export const CompactListItem: React.FC<CompactListItemProps> = ({
             className="p-1 rounded-md bg-amber-50 text-amber-500 shrink-0"
           >
             <Sparkles className="w-3.5 h-3.5" />
+          </span>
+        )}
+
+        {project.isFeatured && (
+          <span
+            title="Dự án tiêu biểu"
+            className="p-1 rounded-full bg-amber-400/20 border border-amber-400/60 shadow-xs shrink-0 select-none cursor-pointer"
+          >
+            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
           </span>
         )}
 

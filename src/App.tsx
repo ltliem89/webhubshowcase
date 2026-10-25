@@ -51,7 +51,7 @@ import {
   setCommunityApprovedOnly,
 } from './config';
 
-const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v15';
+const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v16';
 const STORAGE_KEY_LANG = 'webhub_language_preference';
 const STORAGE_KEY_ADMIN = 'webhub_admin_session';
 
@@ -553,6 +553,13 @@ export default function App() {
         return true;
       })
       .sort((a, b) => {
+        // Dự án nào được đánh dấu sao (featured) thì luôn sắp ĐẦU TIÊN
+        const aFeatured = a.isFeatured ? 1 : 0;
+        const bFeatured = b.isFeatured ? 1 : 0;
+        if (aFeatured !== bFeatured) {
+          return bFeatured - aFeatured;
+        }
+
         if (filters.sortBy === 'newest') {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }

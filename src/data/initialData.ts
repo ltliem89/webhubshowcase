@@ -656,8 +656,8 @@ export const INITIAL_PROJECTS: WebProject[] = [
     createdAt: "2026-10-07T15:14:37.887Z",
     previewImage: "/previews/proj-1792680799304.png",
     tags: ["⭐ Nổi bật","Vật lý","Quang học","Khúc xạ","Phản xạ toàn phần"],
-    views: 775,
-    likes: 659,
+    views: 1065,
+    likes: 969,
     goLink: "khucxa-pxtp",
   },
   {
@@ -697,8 +697,8 @@ export const INITIAL_PROJECTS: WebProject[] = [
     createdAt: "2026-10-10T13:51:00.000Z",
     previewImage: "/previews/proj-roitudo.png",
     tags: ["⭐ Nổi bật", "Vật lý", "Rơi tự do", "Gia tốc trọng trường", "Thí nghiệm ảo"],
-    views: 895,
-    likes: 796,
+    views: 1280,
+    likes: 1203,
     goLink: "https://webhubshowcase.vercel.app/go/DEcXSk9ARRMbXQUIDFwQF14FAgENRgMHXwQKQVhTUwNNWhtTA0dYSiekjA5PWZeJklMGFxVdVQRAUlcu7s1PeR5TTRtCNF6y3QhARFcHD11NQQJeShYPQA4xEAgDARlMTggCDws",
   },
   {
@@ -718,8 +718,8 @@ export const INITIAL_PROJECTS: WebProject[] = [
     createdAt: "2026-10-10T14:02:00.000Z",
     previewImage: "/previews/proj-camungdientu.png",
     tags: ["⭐ Nổi bật", "Vật lý", "Cảm ứng điện từ", "Từ trường", "Cuộn dây", "Nam châm"],
-    views: 846,
-    likes: 744,
+    views: 1195,
+    likes: 1111,
     goLink: "https://webhubshowcase.vercel.app/go/DEcXSk9ARRMbXQUIDFwBGVoEGQIGARAMWRJBWxNAQBYOVlYBB0pARFcWD11NbpeIgB5CmYzYGQJCrOQLzNzoQ1ZGwsjJWhtTFkdYSjmhh0c7RRdcS1MuEfTbGkdOShBAF0UDWRpbRh5aQXcWGgQLBFsBQgpNUA",
   },
   {
@@ -739,8 +739,8 @@ export const INITIAL_PROJECTS: WebProject[] = [
     createdAt: "2026-10-10T14:05:00.000Z",
     previewImage: "/previews/proj-nangluonganhsang.png",
     tags: ["⭐ Nổi bật", "Vật lý", "Năng lượng ánh sáng", "Pin quang điện", "Điện năng", "Quang điện"],
-    views: 782,
-    likes: 673,
+    views: 1150,
+    likes: 1058,
     goLink: "https://webhubshowcase.vercel.app/go/DEcXSk9ARRMbXQUIDFwMGVkWGxANBhIDXlZBWxNAQBYOVlYBB0pARFcWD11NY7KxTRRCFPHBlt7BBhJC7sYBRVZB4NIMHxVdVQRAUlcu7s1PeR5TTRtCNF6y3QhARFcHD11NQQJeShYPQA4xEAgDARlMTggCDws",
   },
   {
