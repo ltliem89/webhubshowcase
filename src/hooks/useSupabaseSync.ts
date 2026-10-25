@@ -55,15 +55,15 @@ export function useSupabaseSync() {
     }
   }, []);
 
-  // Lắng nghe thay đổi thời gian thực (Supabase Realtime)
+  // Lắng nghe thay đổi thời gian thực (Supabase Realtime) trên bảng webhub
   useEffect(() => {
     loadDataFromCloud();
 
     const channel = supabase
-      .channel('public:projects')
+      .channel('public:webhub-channel')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'projects' },
+        { event: '*', schema: 'public', table: 'webhub' },
         () => {
           loadDataFromCloud();
         }

@@ -300,15 +300,15 @@ export default function App() {
     }
   }, []);
 
-  // Tải dữ liệu từ Supabase khi mở app & lắng nghe Realtime
+  // Tải dữ liệu từ Supabase khi mở app & lắng nghe Realtime trên bảng webhub
   useEffect(() => {
     syncFromSupabase();
 
     const channel = supabase
-      .channel('public:projects-realtime')
+      .channel('public:webhub-realtime')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'projects' },
+        { event: '*', schema: 'public', table: 'webhub' },
         () => {
           syncFromSupabase();
         }

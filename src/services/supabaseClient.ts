@@ -35,19 +35,19 @@ export function rowToProject(row: any): WebProject {
   };
 }
 
-// Chuyển đổi WebProject sang định dạng Postgres projects
+// Chuyển đổi WebProject sang định dạng Postgres
 export function projectToRow(project: WebProject): any {
   return {
     id: project.id,
     title: project.title,
     url: project.url,
-    description: project.description,
-    country: project.country,
-    category: project.category,
-    education_level: project.educationLevel,
-    status: project.status,
+    description: project.description || '',
+    country: project.country || 'VN',
+    category: project.category || 'general',
+    education_level: project.educationLevel || 'all',
+    status: project.status || 'approved',
     is_famous: Boolean(project.isFamous),
-    author_name: project.authorName,
+    author_name: project.authorName || 'Thành viên',
     author_contact: project.authorContact || '',
     created_at: project.createdAt || new Date().toISOString(),
     preview_image: project.previewImage || '',
@@ -61,30 +61,31 @@ export function projectToRow(project: WebProject): any {
 }
 
 /**
- * 1. Tải danh sách project đã duyệt từ Supabase (bảng projects & webhub)
+ * 1. Tải danh sách project đã duyệt từ Supabase (Ưu tiên bảng chính webhub)
  */
 export async function fetchProjectsFromSupabase(): Promise<WebProject[]> {
   try {
-    const [pRes, wRes] = await Promise.allSettled([
+    const [wRes, pRes] = await Promise.allSettled([
+      supabase
+        .from('webhub')
+        .select('*')
+        .order('created_at', { ascending: false }),
       supabase
         .from('projects')
         .select('*')
         .eq('status', 'approved')
         .order('created_at', { ascending: false }),
-      supabase
-        .from('webhub')
-        .select('*')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false }),
     ]);
 
-    const projectsData = pRes.status === 'fulfilled' && pRes.value.data ? pRes.value.data : [];
     const webhubData = wRes.status === 'fulfilled' && wRes.value.data ? wRes.value.data : [];
+    const projectsData = pRes.status === 'fulfilled' && pRes.value.data ? pRes.value.data : [];
 
-    const combined = [...projectsData, ...webhubData];
+    // Ưu tiên dữ liệu từ bảng webhub
+    const combined = [...webhubData, ...projectsData];
     const uniqueMap = new Map<string, WebProject>();
 
     for (const row of combined) {
+      if (row.id === 'system-site-stats' || row.status === 'system') continue;
       const proj = rowToProject(row);
       if (!uniqueMap.has(proj.id)) {
         uniqueMap.set(proj.id, proj);
@@ -93,7 +94,7 @@ export async function fetchProjectsFromSupabase(): Promise<WebProject[]> {
 
     return Array.from(uniqueMap.values());
   } catch (err) {
-    console.error('Lỗi kết nối tải dữ liệu từ Supabase:', err);
+    console.error('Lỗi kết nối tải dữ liệu từ Supabase webhub:', err);
     return [];
   }
 }
@@ -124,7 +125,6 @@ export async function fetchSubmissionsFromSupabase(): Promise<WebProject[]> {
         isUserSubmission: true,
       }));
 
-      // Merge cloud submissions and local cache
       const subMap = new Map<string, WebProject>();
       for (const s of cloudSubs) subMap.set(s.id, s);
       for (const s of localList) {
@@ -190,14 +190,20 @@ export async function submitToSupabase(project: WebProject): Promise<boolean> {
 }
 
 /**
- * 4. Admin lưu / cập nhật dự án trực tiếp vào Supabase
+ * 4. Admin lưu / cập nhật dự án (Ưu tiên bảng webhub, fallback bảng projects)
  */
 export async function upsertProjectToSupabase(project: WebProject): Promise<boolean> {
   const row = projectToRow(project);
   try {
-    const { error } = await supabase.from('projects').upsert([row], { onConflict: 'id' });
-    if (error) {
-      console.error('Lỗi cập nhật project lên Supabase:', error);
+    // 1. Thử ghi vào bảng webhub chính
+    const { error: wErr } = await supabase.from('webhub').upsert([row], { onConflict: 'id' });
+    if (!wErr) return true;
+
+    console.warn('Ghi vào webhub gặp lỗi (dùng fallback bảng projects):', wErr.message);
+    // 2. Dự phòng an toàn ghi vào projects
+    const { error: pErr } = await supabase.from('projects').upsert([row], { onConflict: 'id' });
+    if (pErr) {
+      console.error('Lỗi cập nhật project lên Supabase:', pErr);
       return false;
     }
     return true;
@@ -208,7 +214,7 @@ export async function upsertProjectToSupabase(project: WebProject): Promise<bool
 }
 
 /**
- * 5. Admin duyệt bài từ submissions đưa sang projects
+ * 5. Admin duyệt bài từ submissions đưa sang bảng webhub
  */
 export async function approveSubmissionInSupabase(project: WebProject): Promise<boolean> {
   const approvedProject: WebProject = {
@@ -218,16 +224,15 @@ export async function approveSubmissionInSupabase(project: WebProject): Promise<
   };
   const row = projectToRow(approvedProject);
 
-  // 1. Ghi vào projects bảng chính
+  // 1. Ghi vào webhub (hoặc fallback projects)
   try {
-    const { error: insError } = await supabase.from('projects').upsert([row], { onConflict: 'id' });
-    if (insError) {
-      console.error('Lỗi duyệt bài vào projects:', insError);
-      return false;
+    const { error: wErr } = await supabase.from('webhub').upsert([row], { onConflict: 'id' });
+    if (wErr) {
+      console.warn('Ghi duyệt webhub gặp lỗi trigger, dùng fallback projects:', wErr.message);
+      await supabase.from('projects').upsert([row], { onConflict: 'id' });
     }
   } catch (err) {
-    console.error('Lỗi gọi approveSubmissionInSupabase:', err);
-    return false;
+    await supabase.from('projects').upsert([row], { onConflict: 'id' });
   }
 
   // 2. Xóa khỏi submissions trên Supabase
@@ -269,21 +274,15 @@ export async function rejectSubmissionInSupabase(id: string): Promise<boolean> {
 }
 
 /**
- * 7. Admin xóa dự án khỏi Supabase
+ * 7. Admin xóa dự án khỏi Supabase (xóa cả webhub và projects)
  */
 export async function deleteProjectFromSupabase(id: string): Promise<boolean> {
   try {
-    const [pDel, wDel] = await Promise.allSettled([
-      supabase.from('projects').delete().eq('id', id),
+    await Promise.allSettled([
       supabase.from('webhub').delete().eq('id', id),
+      supabase.from('projects').delete().eq('id', id),
+      supabase.from('submissions').delete().eq('id', id),
     ]);
-    const pError = pDel.status === 'fulfilled' ? pDel.value.error : null;
-    const wError = wDel.status === 'fulfilled' ? wDel.value.error : null;
-
-    if (pError && wError) {
-      console.error('Lỗi xóa project khỏi Supabase:', pError, wError);
-      return false;
-    }
     return true;
   } catch (err) {
     console.error('Lỗi xóa project khỏi Supabase:', err);
@@ -292,7 +291,7 @@ export async function deleteProjectFromSupabase(id: string): Promise<boolean> {
 }
 
 /**
- * 8. Tăng views / likes trực tiếp lên Supabase
+ * 8. Tăng views / likes trực tiếp lên bảng webhub (hoặc fallback projects)
  */
 export async function incrementProjectStat(
   id: string,
@@ -300,10 +299,17 @@ export async function incrementProjectStat(
   currentVal: number
 ): Promise<void> {
   try {
-    await supabase
-      .from('projects')
+    const { error: wErr } = await supabase
+      .from('webhub')
       .update({ [field]: currentVal + 1 })
       .eq('id', id);
+
+    if (wErr) {
+      await supabase
+        .from('projects')
+        .update({ [field]: currentVal + 1 })
+        .eq('id', id);
+    }
   } catch (err) {
     console.warn(`Lỗi cập nhật ${field} trên Supabase:`, err);
   }
