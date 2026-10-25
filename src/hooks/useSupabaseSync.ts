@@ -1,22 +1,24 @@
-import { useEffect, useState } from 'react';
-import { WebProject } from './types';
-import { INITIAL_PROJECTS } from './data/initialData';
-import { supabase } from './services/supabaseClient'; // Import client hiện có
-import { 
-  fetchProjectsFromSupabase, 
+import { useEffect, useState, useCallback } from 'react';
+import { WebProject } from '../types';
+import { INITIAL_PROJECTS } from '../data/initialData';
+import {
+  supabase,
+  fetchProjectsFromSupabase,
   fetchSubmissionsFromSupabase,
   submitToSupabase,
   upsertProjectToSupabase,
-  deleteProjectFromSupabase,
+  approveSubmissionInSupabase,
   rejectSubmissionInSupabase,
-  incrementProjectStat
-} from './services/supabaseClient';
+  deleteProjectFromSupabase,
+  incrementProjectStat,
+} from '../services/supabaseClient';
+
+const CACHE_KEY = 'webhub_projects_supabase_cache';
 
 export function useSupabaseSync() {
   const [projects, setProjects] = useState<WebProject[]>(() => {
-    // Khởi tạo tạm từ localStorage hoặc INITIAL_PROJECTS trong lúc chờ fetch Supabase
     try {
-      const saved = localStorage.getItem('webhub_projects_supabase_cache');
+      const saved = localStorage.getItem(CACHE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -26,57 +28,57 @@ export function useSupabaseSync() {
   });
 
   const [submissions, setSubmissions] = useState<WebProject[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Tải dữ liệu thật từ Supabase khi mở app
-  const loadDataFromCloud = async () => {
+  // Tải dữ liệu từ Supabase
+  const loadDataFromCloud = useCallback(async () => {
     try {
       setIsLoading(true);
-      const cloudProjects = await fetchProjectsFromSupabase();
-      const cloudSubs = await fetchSubmissionsFromSupabase();
+      const [cloudProjects, cloudSubs] = await Promise.all([
+        fetchProjectsFromSupabase(),
+        fetchSubmissionsFromSupabase(),
+      ]);
 
       if (cloudProjects && cloudProjects.length > 0) {
         setProjects(cloudProjects);
-        localStorage.setItem('webhub_projects_supabase_cache', JSON.stringify(cloudProjects));
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(cloudProjects));
+        } catch {}
       }
       if (cloudSubs) {
         setSubmissions(cloudSubs);
       }
     } catch (err) {
-      console.error('Lỗi kết nối Supabase:', err);
+      console.error('Lỗi nạp dữ liệu từ Supabase:', err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
+  // Lắng nghe thay đổi thời gian thực (Supabase Realtime)
   useEffect(() => {
     loadDataFromCloud();
 
-    // Thiết lập Realtime subscription
     const channel = supabase
-      .channel('webhub:public')
+      .channel('public:projects')
       .on(
-        'broadcast',
-        { event: 'webhub_changed' },
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'projects' },
         () => {
-          console.log('Nhận tín hiệu thay đổi dữ liệu từ Realtime');
-          loadDataFromCloud(); // Tải lại danh sách khi có thay đổi
+          loadDataFromCloud();
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Đã đăng ký Realtime Realtime thành công!');
-        }
-      });
+      .subscribe();
 
-    // Cleanup khi component bị hủy
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadDataFromCloud]);
 
-  // 1. Thêm / Nộp bài mới -> Lưu thẳng vào bảng submissions trên Supabase
-  const handleAddNewProject = async (newProj: Omit<WebProject, 'id' | 'createdAt' | 'views' | 'likes'>): Promise<boolean> => {
+  // 1. Gửi bài nộp mới
+  const handleAddNewProject = async (
+    newProj: Omit<WebProject, 'id' | 'createdAt' | 'views' | 'likes'>
+  ): Promise<boolean> => {
     const id = 'proj-' + Date.now();
     const project: WebProject = {
       ...newProj,
@@ -85,16 +87,17 @@ export function useSupabaseSync() {
       views: 0,
       likes: 0,
       status: 'pending',
+      isUserSubmission: true,
     };
 
     const success = await submitToSupabase(project);
     if (success) {
-      setSubmissions((prev) => [project, ...prev]);
+      setSubmissions((prev) => [project, ...prev.filter((p) => p.id !== id)]);
     }
     return success;
   };
 
-  // 2. Admin duyệt bài từ submissions sang projects
+  // 2. Admin duyệt bài
   const handleApproveProject = async (id: string): Promise<boolean> => {
     const target = submissions.find((s) => s.id === id) || projects.find((p) => p.id === id);
     if (!target) return false;
@@ -105,18 +108,15 @@ export function useSupabaseSync() {
       isUserSubmission: true,
     };
 
-    const success = await upsertProjectToSupabase(approved);
+    const success = await approveSubmissionInSupabase(approved);
     if (success) {
-      // Xóa khỏi submissions trên Supabase
-      await rejectSubmissionInSupabase(id);
-      
       setProjects((prev) => [approved, ...prev.filter((p) => p.id !== id)]);
       setSubmissions((prev) => prev.filter((s) => s.id !== id));
     }
     return success;
   };
 
-  // 3. Admin từ chối bài nộp
+  // 3. Admin từ chối bài
   const handleRejectSubmission = async (id: string): Promise<boolean> => {
     const success = await rejectSubmissionInSupabase(id);
     if (success) {
@@ -125,11 +125,10 @@ export function useSupabaseSync() {
     return success;
   };
 
-  // 4. Admin chỉnh sửa / cập nhật dự án (bao gồm đổi ảnh đại diện mới + lưu ảnh cũ vào history)
+  // 4. Admin cập nhật dự án
   const handleUpdateProject = async (updated: WebProject): Promise<boolean> => {
     const existing = projects.find((p) => p.id === updated.id);
-    
-    // Xử lý lịch sử ảnh đại diện khi có ảnh mới khác ảnh cũ
+
     let previewImageHistory = existing?.previewImageHistory || [];
     if (existing && existing.previewImage && existing.previewImage !== updated.previewImage) {
       if (!previewImageHistory.includes(existing.previewImage)) {
@@ -160,7 +159,7 @@ export function useSupabaseSync() {
     return success;
   };
 
-  // 6. Tăng views / likes trực tiếp trên cloud
+  // 6. Tăng views / likes
   const handleIncrementStat = async (id: string, field: 'views' | 'likes') => {
     setProjects((prev) =>
       prev.map((p) => {
@@ -176,7 +175,9 @@ export function useSupabaseSync() {
 
   return {
     projects,
+    setProjects,
     submissions,
+    setSubmissions,
     isLoading,
     loadDataFromCloud,
     handleAddNewProject,

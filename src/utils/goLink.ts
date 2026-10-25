@@ -7,6 +7,7 @@
  * Lưu ý: mã dễ giải mã nếu biết key (key nằm ở 2 phía). Mục đích là che URL gốc
  * khỏi giao diện/thanh địa chỉ cho người dùng thường — không phải bảo mật cao cấp.
  */
+import { WebProject } from '../types';
 
 const XOR_KEY = 'webhub-go-v2#sbx7q';
 
@@ -76,4 +77,28 @@ export function getGoUrl(
     e: (meta && meta.authorEmail) || '',
   });
   return `${location.origin}/go/${encodeToCode(payload)}`;
+}
+
+/**
+ * Sinh link /go/<mã> cho 1 project dựa trên origin hiện tại của website.
+ */
+export function computeGoLink(project: WebProject): string {
+  try {
+    if (typeof window === 'undefined') return project.goLink || '';
+    return getGoUrl(window.location, project.url, {
+      title: project.title,
+      authorName: project.authorName,
+      authorEmail: project.authorContact,
+    });
+  } catch {
+    return project.goLink || '';
+  }
+}
+
+/**
+ * Ưu tiên link /go/<mã> ĐÃ LƯU trong trường goLink. Chỉ sinh mới khi chưa có.
+ */
+export function ensureGoLink(project: WebProject): WebProject {
+  if (project.goLink && project.goLink.trim()) return project;
+  return { ...project, goLink: computeGoLink(project) };
 }

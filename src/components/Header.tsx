@@ -150,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/*
-              Google Sheets sync hidden for security (auto-sync fixed URL only).
+              Supabase Cloud database synchronization active.
             */}
 
             {/* Admin Portal Toggle */}

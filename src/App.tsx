@@ -16,6 +16,7 @@ import { localizeProject } from './data/projectLocalizations';
 import { translations } from './translations';
 import { Header } from './components/Header';
 import { StatsBanner } from './components/StatsBanner';
+import { incrementVisitorCount } from './services/visitorCounter';
 import { FilterBar } from './components/FilterBar';
 import { ProjectCard } from './components/ProjectCard';
 import { TimelineLayerCard } from './components/TimelineLayerCard';
@@ -27,16 +28,19 @@ import { AdminModal } from './components/AdminModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { Globe, Plus, Sparkles } from 'lucide-react';
 import {
-  getStoredScriptUrl,
-  isAutoSyncEnabled,
   ensureGoLink,
-  pushSingleProjectToSheet,
-  upsertProjectToSheet,
-  fetchProjectsFromSheet,
-  fetchSubmissionsFromSheet,
-  deleteSubmissionsFromSheet,
-  updateStatsInSheet,
-} from './services/googleSync';
+} from './utils/goLink';
+import {
+  fetchProjectsFromSupabase,
+  fetchSubmissionsFromSupabase,
+  submitToSupabase,
+  upsertProjectToSupabase,
+  approveSubmissionInSupabase,
+  rejectSubmissionInSupabase,
+  deleteProjectFromSupabase,
+  incrementProjectStat,
+  supabase,
+} from './services/supabaseClient';
 import {
   isCommunityApprovedOnly,
   setCommunityApprovedOnly,
@@ -213,65 +217,7 @@ export default function App() {
     }
   }, [projects]);
 
-  // Theo dĂµi cĂ¡c thay Ä‘á»•i Views/Likes cá»¥c bá»™ chÆ°a ká»‹p Ä‘á»“ng bá»™ lĂªn Google Sheets.
-  const statsDirtyRef = useRef<Map<string, { views: number; likes: number }>>(new Map());
-  const statsTimerRef = useRef<number | null>(null);
-
-  const flushStatsSync = useCallback(() => {
-    if (statsTimerRef.current !== null) {
-      window.clearTimeout(statsTimerRef.current);
-      statsTimerRef.current = null;
-    }
-    const dirty = statsDirtyRef.current;
-    if (dirty.size === 0) return;
-    const scriptUrl = getStoredScriptUrl();
-    if (scriptUrl && isAutoSyncEnabled()) {
-      const items = Array.from(dirty.entries()).map(([projectId, s]) => ({
-        projectId,
-        views: s.views,
-        likes: s.likes,
-      }));
-      updateStatsInSheet(scriptUrl, items);
-    }
-    dirty.clear();
-  }, []);
-
-  // Gá»™p cĂ¡c thay Ä‘á»•i stats vĂ  gá»­i lĂªn Sheets sau 4 giĂ¢y trá»… (debounce)
-  const markStatsDirty = useCallback(
-    (id: string, views: number, likes: number) => {
-      const prev = statsDirtyRef.current.get(id) || { views: 0, likes: 0 };
-      statsDirtyRef.current.set(id, {
-        views: Math.max(prev.views, views),
-        likes: Math.max(prev.likes, likes),
-      });
-      if (statsTimerRef.current !== null) window.clearTimeout(statsTimerRef.current);
-      statsTimerRef.current = window.setTimeout(flushStatsSync, 4000);
-    },
-    [flushStatsSync]
-  );
-
-  // Dá»n dáº¹p timer vĂ  Ä‘áº©y stats cĂ²n dang dá»Ÿ khi Ä‘Ă³ng trang
-  useEffect(() => {
-    const flushOnUnload = () => {
-      const dirty = statsDirtyRef.current;
-      if (dirty.size === 0) return;
-      const scriptUrl = getStoredScriptUrl();
-      if (!scriptUrl || !isAutoSyncEnabled()) return;
-      const items = Array.from(dirty.entries()).map(([projectId, s]) => ({
-        projectId,
-        views: s.views,
-        likes: s.likes,
-      }));
-      updateStatsInSheet(scriptUrl, items);
-    };
-    window.addEventListener('beforeunload', flushOnUnload);
-    return () => {
-      window.removeEventListener('beforeunload', flushOnUnload);
-      if (statsTimerRef.current !== null) window.clearTimeout(statsTimerRef.current);
-    };
-  }, []);
-
-  // Trạng thái đồng bộ dữ liệu đám mây (background non-blocking sync)
+  // Trạng thái đồng bộ Supabase Cloud
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
 
   // 4. View Mode & Filter State
@@ -287,17 +233,13 @@ export default function App() {
   const [showGuide, setShowGuide] = useState(false);
 
   const handleOpenGuide = () => setShowGuide(true);
-
   const handleExitGuide = () => setShowGuide(false);
 
   // 5. Modals State
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
-  // BĂ i Ä‘ang Ä‘Æ°á»£c admin chá»‰nh sá»­a (má»Ÿ tháº³ng SubmitModal á»Ÿ cháº¿ Ä‘á»™ sá»­a)
   const [editingProject, setEditingProject] = useState<WebProject | null>(null);
 
   const handleOpenEditProject = (p: WebProject) => {
-    // Luôn chỉnh sửa bản GỐC (raw) trong state — không lấy bản localized
-    // từ card, tránh ghi đè nội dung gốc / mất các cờ quan trọng.
     const raw = projects.find((item) => item.id === p.id) || p;
     setEditingProject(raw);
     setIsSubmitOpen(true);
@@ -310,239 +252,138 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [selectedQRProject, setSelectedQRProject] = useState<WebProject | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<WebProject | null>(null);
+  const [siteVisits, setSiteVisits] = useState<number>(1);
+
+  useEffect(() => {
+    incrementVisitorCount()
+      .then((v) => {
+        if (v) setSiteVisits(v);
+      })
+      .catch(() => {});
+  }, []);
 
   /**
-   * KĂ©o cĂ¡c bĂ i CHá»œ DUYá»†T / Tá»ª CHá»I tá»« tab WebHub_Submissions trĂªn Google Sheets vá»
-   * vĂ  há»£p nháº¥t vĂ o state local. Nhá» váº­y admin má»Ÿ trĂªn thiáº¿t bá»‹ Báº¤T Ká»² nĂ o
-   * cÅ©ng tháº¥y Ä‘Æ°á»£c bĂ i mĂ  ngÆ°á»i dĂ¹ng vá»«a gá»­i tá»« thiáº¿t bá»‹ khĂ¡c (cross-device).
+   * Đồng bộ dữ liệu 2 chiều với Supabase Cloud Database:
+   * mezcsiaozymspbroflye.supabase.co
    */
-  const syncPendingFromCloud = useCallback(() => {
-    const scriptUrl = getStoredScriptUrl();
-    if (!scriptUrl || !isAutoSyncEnabled()) return;
+  const syncFromSupabase = useCallback(async () => {
+    try {
+      setIsCloudSyncing(true);
+      const [cloudProjects, cloudSubs] = await Promise.all([
+        fetchProjectsFromSupabase(),
+        fetchSubmissionsFromSupabase(),
+      ]);
 
-    return fetchSubmissionsFromSheet(scriptUrl)
-      .then((result) => {
-        if (!result.success || !result.data) return;
+      if (cloudProjects && cloudProjects.length > 0) {
         setProjects((prev) => {
-          const cloudProjects = result.data as WebProject[];
-          let changed = false;
-          const merged = [...prev];
-          for (const cp of cloudProjects) {
-            // Bá» qua bĂ i Ä‘Ă£ APPROVED cĂ²n sĂ³t trong tab chá» duyá»‡t (Ä‘Ă£ chuyá»ƒn sang
-            // WebHub_Projects khi admin duyá»‡t) â€” trĂ¡nh hiá»‡n nháº§m trong danh sĂ¡ch chá».
-            if (cp.status !== 'pending' && cp.status !== 'rejected') continue;
-            const idx = merged.findIndex((p) => p.id === cp.id);
-            // Chá»‰ thĂªm/cáº­p nháº­t bĂ i CHÆ¯A duyá»‡t (pending/rejected) tá»›i tá»« Ä‘Ă¡m mĂ¢y,
-            // trĂ¡nh Ä‘Ă¨ lĂªn dá»¯ liá»‡u approved Ä‘ang hiá»ƒn thá»‹.
-            const effectiveStatus =
-              cp.status === 'rejected' ? 'rejected' : 'pending';
-            if (idx >= 0) {
-              if (
-                merged[idx].status === 'pending' ||
-                merged[idx].status === 'rejected'
-              ) {
-                merged[idx] = {
-                  ...merged[idx],
-                  ...cp,
-                  status: effectiveStatus,
-                  isUserSubmission:
-                    merged[idx].isUserSubmission === true ||
-                    cp.isUserSubmission === true,
-                };
-                changed = true;
-              }
-            } else {
-              merged.push({
-                ...cp,
-                status: effectiveStatus,
-                isUserSubmission: cp.isUserSubmission === true,
-              });
-              changed = true;
+          const map = new Map<string, WebProject>();
+          for (const p of prev) {
+            if (p.status === 'pending' || p.status === 'rejected') {
+              map.set(p.id, p);
             }
           }
-          return changed ? merged : prev;
-        });
-      })
-      .catch((err) => {
-        console.warn('Background pending sync notice:', err);
-      });
-  }, []);
-
-  // Background non-blocking auto-sync from Google Sheets on initial load
-  useEffect(() => {
-    const scriptUrl = getStoredScriptUrl();
-    if (scriptUrl && isAutoSyncEnabled()) {
-      setIsCloudSyncing(true);
-      const syncApprovedPromise = fetchProjectsFromSheet(scriptUrl)
-        .then((result) => {
-          if (!result.success || !result.data || result.data.length === 0) return;
-          setProjects((prev) => {
-            const cloudApproved = result.data as WebProject[];
-            const merged = [...prev];
-            let changed = false;
-            for (const cp of cloudApproved) {
-              const idx = merged.findIndex((p) => p.id === cp.id);
-              if (idx >= 0) {
-                if (merged[idx].status !== 'approved') {
-                  merged[idx] = {
-                    ...mergeCloudProject(merged[idx], cp),
-                    status: 'approved',
-                  };
-                  changed = true;
-                } else {
-                  // Há»£p nháº¥t giá»¯ cá» + sá»‘ liá»‡u cao hÆ¡n, khĂ´ng lĂ m máº¥t isUserSubmission
-                  const mergedItem = {
-                    ...mergeCloudProject(merged[idx], cp),
-                    status: 'approved',
-                  };
-                  if (JSON.stringify(merged[idx]) !== JSON.stringify(mergedItem)) {
-                    merged[idx] = mergedItem;
-                    changed = true;
-                  }
-                }
-              } else {
-                merged.push({ ...cp, status: 'approved' });
-                changed = true;
-              }
+          for (const cp of cloudProjects) {
+            map.set(cp.id, cp);
+          }
+          for (const cs of cloudSubs) {
+            if (!map.has(cs.id)) {
+              map.set(cs.id, cs);
             }
-            return changed ? merged : prev;
-          });
-        })
-        .catch((err) => {
-          console.warn('Background Google Sheets sync notice:', err);
+          }
+          return sanitizeAndMigrateProjects(Array.from(map.values()));
         });
-      // Äá»“ng thá»i kĂ©o danh sĂ¡ch bĂ i chá» duyá»‡t tá»« Ä‘Ă¡m mĂ¢y vá»
-      const syncPendingPromise = syncPendingFromCloud();
-      Promise.allSettled([syncApprovedPromise, syncPendingPromise]).finally(() => {
-        setIsCloudSyncing(false);
-      });
+      }
+    } catch (err) {
+      console.warn('Supabase sync notice:', err);
+    } finally {
+      setIsCloudSyncing(false);
     }
-  }, [syncPendingFromCloud]);
-
-  // Äá»‹nh ká»³ (má»—i 45 giĂ¢y) táº£i láº¡i dá»¯ liá»‡u ÄĂƒ DUYá»†T tá»« Google Sheets.
-  // Nhá» váº­y khi admin duyá»‡t bĂ i á»Ÿ báº¥t ká»³ thiáº¿t bá»‹ nĂ o, cĂ¡c thiáº¿t bá»‹ khĂ¡c
-  // sáº½ tá»± Ä‘á»™ng cáº­p nháº­t vĂ  hiá»ƒn thá»‹ bĂ i ngay mĂ  khĂ´ng cáº§n reload trang.
-  useEffect(() => {
-    const scriptUrl = getStoredScriptUrl();
-    if (!scriptUrl || !isAutoSyncEnabled()) return;
-
-    const pollApproved = () => {
-      fetchProjectsFromSheet(scriptUrl)
-        .then((result) => {
-          if (!result.success || !result.data) return;
-          setProjects((prev) => {
-            let cloudApproved = result.data as WebProject[];
-            let changed = false;
-            const merged = [...prev];
-
-            // GhĂ©p bĂ i Ä‘Ă£ duyá»‡t tá»« Ä‘Ă¡m mĂ¢y (giá»¯ láº¡i pending/rejected local)
-            for (let cp of cloudApproved) {
-              // Äá»«ng Ä‘á»ƒ dá»¯ liá»‡u Ä‘Ă¡m mĂ¢y ghi Ä‘Ă¨ Views/Likes local chÆ°a ká»‹p Ä‘á»“ng bá»™
-              const dirty = statsDirtyRef.current.get(cp.id);
-              if (dirty) {
-                cp = {
-                  ...cp,
-                  views: Math.max(cp.views, dirty.views),
-                  likes: Math.max(cp.likes, dirty.likes),
-                };
-              }
-              const idx = merged.findIndex((p) => p.id === cp.id);
-              if (idx >= 0) {
-                const mergedItem = {
-                  ...mergeCloudProject(merged[idx], cp),
-                  status: 'approved',
-                };
-                if (JSON.stringify(merged[idx]) !== JSON.stringify(mergedItem)) {
-                  merged[idx] = mergedItem;
-                  changed = true;
-                }
-              } else {
-                merged.push({ ...cp, status: 'approved' });
-                changed = true;
-              }
-            }
-            return changed ? merged : prev;
-          });
-        })
-        .catch((err) => {
-          console.warn('Polling approved sync notice:', err);
-        });
-    };
-
-    pollApproved();
-    const interval = setInterval(pollApproved, 45000);
-    return () => clearInterval(interval);
   }, []);
 
-  // 6. Action Handlers
+  // Tải dữ liệu từ Supabase khi mở app & lắng nghe Realtime
+  useEffect(() => {
+    syncFromSupabase();
+
+    const channel = supabase
+      .channel('public:projects-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'projects' },
+        () => {
+          syncFromSupabase();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [syncFromSupabase]);
+
+  // 6. Action Handlers (Supabase Powered)
   const handleLike = (projectId: string) => {
     setProjects((prev) =>
-      prev.map((p) => (p.id === projectId ? { ...p, likes: p.likes + 1 } : p))
+      prev.map((p) => {
+        if (p.id === projectId) {
+          const nextVal = p.likes + 1;
+          incrementProjectStat(projectId, 'likes', p.likes);
+          return { ...p, likes: nextVal };
+        }
+        return p;
+      })
     );
-    const p = projects.find((x) => x.id === projectId);
-    if (p) markStatsDirty(projectId, p.views, p.likes + 1);
   };
 
   const handleVisit = (projectId: string) => {
     setProjects((prev) =>
-      prev.map((p) => (p.id === projectId ? { ...p, views: p.views + 1 } : p))
+      prev.map((p) => {
+        if (p.id === projectId) {
+          const nextVal = p.views + 1;
+          incrementProjectStat(projectId, 'views', p.views);
+          return { ...p, views: nextVal };
+        }
+        return p;
+      })
     );
-    const p = projects.find((x) => x.id === projectId);
-    if (p) markStatsDirty(projectId, p.views + 1, p.likes);
   };
 
   const handleSubmitNewProject = (
     data: Omit<WebProject, 'id' | 'createdAt' | 'views' | 'likes'>
   ) => {
     const id = `proj-${Date.now()}`;
-    // Không auto-tạo thumbnail tại thời điểm submit: project đang pending nên
-    // link che /go/<code> chưa hoạt động → mshots sẽ chụp trang 404 bị cache.
-    // BrowserMockupFrame sẽ tự sinh thumbnail từ go-link khi bài đã được duyệt.
     const thumbnail = (data.previewImage && data.previewImage.trim()) || undefined;
 
     const newProject: WebProject = {
       ...data,
       id,
-      status: 'pending', // Chá» admin duyá»‡t trÆ°á»›c khi hiá»ƒn thá»‹ cĂ´ng khai
-      isUserSubmission: true, // BĂ i ngÆ°á»i dĂ¹ng Ä‘Äƒng â†’ thuá»™c tab "BĂ i Ä‘Äƒng táº£i" khi Ä‘Æ°á»£c duyá»‡t
+      status: 'pending',
+      isUserSubmission: true,
       createdAt: new Date().toISOString(),
       views: 1,
       likes: 0,
       previewImage: thumbnail,
       goLink: '',
     };
-    // Tạo goLink lần đầu (link /go/<mã>) và lưu vào cột GoLink trên Google Sheets;
-    // sau này chỉ đọc ra dùng, không sinh lại.
     const newProjectWithGoLink = ensureGoLink(newProject);
     setProjects((prev) => [newProjectWithGoLink, ...prev]);
-    // Chuyá»ƒn vá» tab "BĂ i Ä‘Äƒng táº£i" máº·c Ä‘á»‹nh
     setFilters((prev) => ({ ...prev, onlyFamous: false }));
 
-    // Äáº©y bĂ i má»›i (tráº¡ng thĂ¡i pending) lĂªn Google Sheets náº¿u Ä‘Ă£ cáº¥u hĂ¬nh
-    const scriptUrl = getStoredScriptUrl();
-    if (scriptUrl && isAutoSyncEnabled()) {
-      pushSingleProjectToSheet(scriptUrl, newProjectWithGoLink);
-    }
+    // Gửi thẳng vào Supabase
+    submitToSupabase(newProjectWithGoLink);
   };
 
   const handleApprove = (id: string) => {
+    const project = projects.find((p) => p.id === id);
     setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: 'approved' } : p))
+      prev.map((p) => (p.id === id ? { ...p, status: 'approved', isUserSubmission: true } : p))
     );
 
-    // Äá»“ng bá»™ toĂ n bá»™ thĂ´ng tin bĂ i (gá»“m áº£nh Ä‘áº¡i diá»‡n) lĂªn Google Sheets
-    const project = projects.find((p) => p.id === id);
-    if (!project) return;
-    const scriptUrl = getStoredScriptUrl();
-    if (scriptUrl && isAutoSyncEnabled()) {
-      // BĂ i Ä‘Æ°á»£c admin duyá»‡t â†’ luĂ´n coi lĂ  bĂ i cá»™ng Ä‘á»“ng (hiá»ƒn thá»‹ á»Ÿ "BĂ i Ä‘Äƒng táº£i")
-      upsertProjectToSheet(scriptUrl, {
+    if (project) {
+      approveSubmissionInSupabase({
         ...project,
         status: 'approved',
         isUserSubmission: true,
       });
-      // Sau khi duyá»‡t, kĂ©o láº¡i danh sĂ¡ch chá» duyá»‡t tá»« Ä‘Ă¡m mĂ¢y
-      syncPendingFromCloud();
     }
   };
 
@@ -550,33 +391,15 @@ export default function App() {
     setProjects((prev) =>
       prev.map((p) => (p.id === id ? { ...p, status: 'rejected' } : p))
     );
-
-    // Äá»“ng bá»™ tráº¡ng thĂ¡i tá»« chá»‘i (kĂ¨m toĂ n bá»™ thĂ´ng tin) lĂªn Google Sheets
-    const project = projects.find((p) => p.id === id);
-    if (!project) return;
-    const scriptUrl = getStoredScriptUrl();
-    if (scriptUrl && isAutoSyncEnabled()) {
-      upsertProjectToSheet(scriptUrl, { ...project, status: 'rejected' });
-      // Sau khi tá»« chá»‘i, kĂ©o láº¡i danh sĂ¡ch chá» duyá»‡t tá»« Ä‘Ă¡m mĂ¢y
-      syncPendingFromCloud();
-    }
+    rejectSubmissionInSupabase(id);
   };
 
   const handleConfirmDelete = (id: string) => {
     setProjects((prev) => prev.filter((p) => p.id !== id));
-
-    // Äá»“ng bá»™ xĂ³a lĂªn Google Sheets (cáº£ tab Ä‘Ă£ duyá»‡t láº«n chá» duyá»‡t)
-    // Ä‘á»ƒ bĂ i Ä‘Ă£ xĂ³a khĂ´ng quay láº¡i khi táº£i dá»¯ liá»‡u tá»« Sheets / duyá»‡t tá»« xa.
-    const scriptUrl = getStoredScriptUrl();
-    if (scriptUrl && isAutoSyncEnabled()) {
-      deleteSubmissionsFromSheet(scriptUrl, [id]);
-    }
+    deleteProjectFromSupabase(id);
   };
 
-const handleUpdateProject = (updated: WebProject) => {
-    // Chỉnh sửa KHÔNG thay đổi trạng thái duyệt & không làm mất các cờ/quyền:
-    // giữ nguyên status (approve/reject/pending), id, ngày tạo, thống kê,
-    // isFamous và isUserSubmission từ bản ghi hiện có.
+  const handleUpdateProject = (updated: WebProject) => {
     const existing = projects.find((p) => p.id === updated.id);
     const merged: WebProject = existing
       ? {
@@ -598,10 +421,7 @@ const handleUpdateProject = (updated: WebProject) => {
       prev.map((p) => (p.id === merged.id ? merged : p))
     );
 
-    const scriptUrl = getStoredScriptUrl();
-    if (scriptUrl && isAutoSyncEnabled()) {
-      upsertProjectToSheet(scriptUrl, merged);
-    }
+    upsertProjectToSupabase(merged);
   };
 
   const handleExportData = () => {
@@ -749,6 +569,7 @@ const handleUpdateProject = (updated: WebProject) => {
           projects={projects}
           lang={lang}
           onOpenSubmit={handleOpenSubmitNew}
+          siteVisits={siteVisits}
         />
 
         {/* Filter and View Mode Switcher */}
@@ -981,7 +802,7 @@ const handleUpdateProject = (updated: WebProject) => {
         onImportData={handleImportData}
         onResetData={handleResetData}
         onSyncProjects={(syncedProjects) => setProjects(syncedProjects)}
-        onRefreshPending={syncPendingFromCloud}
+        onRefreshPending={syncFromSupabase}
         communityOnly={communityOnly}
         onCommunityOnlyChange={handleCommunityOnlyChange}
         lang={lang}

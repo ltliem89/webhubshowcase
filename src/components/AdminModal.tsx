@@ -125,7 +125,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setEditingProject(null);
   };
 
-  // Tải bài chờ duyệt (pending) từ Google Sheets về (cross-device visibility)
+  // Tải bài chờ duyệt (pending) từ Supabase Cloud về (cross-device visibility)
   const handleRefreshPending = async () => {
     if (!onRefreshPending) return;
     setIsPendingSyncing(true);
@@ -134,12 +134,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       await onRefreshPending();
       setPendingSyncMsg({
         type: 'success',
-        text: 'Đã tải bài chờ duyệt từ Google Sheets (mọi thiết bị)',
+        text: 'Đã đồng bộ bài chờ duyệt từ Supabase Cloud Database',
       });
     } catch {
       setPendingSyncMsg({
         type: 'error',
-        text: 'Không thể tải bài chờ duyệt từ Google Sheets. Hãy kiểm tra cấu hình.',
+        text: 'Không thể tải bài chờ duyệt từ Supabase. Hãy kiểm tra kết nối mạng.',
       });
     } finally {
       setIsPendingSyncing(false);
