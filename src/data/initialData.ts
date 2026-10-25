@@ -682,7 +682,7 @@ export const INITIAL_PROJECTS: WebProject[] = [
   {
     id: "proj-1792852428908",
     title: "Vật lí 10: Đồ thị độ dịch chuyển - thời gian",
-    url: "https://tramkhamphachuyendong.ai.studio",
+    url: "https://dothidodichchuyen-thoigian.ai.studio",
     description: "Khám phá và trực quan hóa đồ thị độ dịch chuyển theo thời gian trong chuyển động thẳng",
     country: "VN",
     category: "physics" as any,
@@ -693,10 +693,10 @@ export const INITIAL_PROJECTS: WebProject[] = [
     authorName: "GiHann",
     authorContact: "",
     createdAt: "2026-10-24T14:40:00+00:00",
-    previewImage: "https://s0.wp.com/mshots/v1/https%3A%2F%2Ftramkhamphachuyendong.ai.studio%2F?w=960",
+    previewImage: "https://s0.wp.com/mshots/v1/https%3A%2F%2Fdothidodichchuyen-thoigian.ai.studio%2F?w=960",
     tags: ["Vật lí 10","Đồ thị","Chuyển động thẳng"],
     views: 5,
     likes: 1,
-    goLink: "tram-kham-pha-chuyen-dong",
+    goLink: "https://webhubshowcase.vercel.app/go/DEcXSk9ARRMbXQUIDFwGF0MZHgENDBwBRQQHWA9XTV4WEFgYEAwDBlsDREkcWQNWShxAVBUFVV9APpTYgBNPQbWfA0JSQhe154TZ-1UWRYbUplb2spLZ4RcVlt7pCx1CTg8aVJeJoB1CVRcFH4TZ9RxCSg4OQ1QeARJAQhU2Hi0DBhtAAUUKD0wQAQ4",
   },
 ];
