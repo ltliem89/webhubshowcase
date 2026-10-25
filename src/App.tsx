@@ -46,7 +46,7 @@ import {
   setCommunityApprovedOnly,
 } from './config';
 
-const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v3';
+const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v5';
 const STORAGE_KEY_LANG = 'webhub_language_preference';
 const STORAGE_KEY_ADMIN = 'webhub_admin_session';
 
@@ -101,10 +101,10 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
       };
     });
 
-  // Ensure all standard famous simulations from INITIAL_PROJECTS are included
-  for (const fam of initialFamous) {
-    if (!updated.some((p) => p.id === fam.id || p.url === fam.url)) {
-      updated.push(fam);
+  // Ensure all projects from INITIAL_PROJECTS (famous & community) are included
+  for (const init of INITIAL_PROJECTS) {
+    if (!updated.some((p) => p.id === init.id || p.url === init.url)) {
+      updated.push(init);
     }
   }
 
@@ -167,6 +167,7 @@ export default function App() {
   const [projects, setProjects] = useState<WebProject[]>(() => {
     try {
       const storageKeys = [
+        'webhub_projects_data_v5',
         'webhub_projects_data_v4',
         'webhub_projects_data_v3',
         'webhub_projects_data_v2',
@@ -290,7 +291,11 @@ export default function App() {
               map.set(cs.id, cs);
             }
           }
-          return sanitizeAndMigrateProjects(Array.from(map.values()));
+          const finalMerged = sanitizeAndMigrateProjects(Array.from(map.values()));
+          try {
+            localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(finalMerged));
+          } catch {}
+          return finalMerged;
         });
       }
     } catch (err) {
