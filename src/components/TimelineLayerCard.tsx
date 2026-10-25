@@ -6,6 +6,7 @@ import {
   Heart,
   QrCode,
   Share2,
+  Star,
   Trash2,
   User,
 } from 'lucide-react';

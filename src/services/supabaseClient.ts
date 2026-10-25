@@ -1,3 +1,10 @@
+export const FEATURED_PROJECT_IDS = new Set([
+  'proj-nangluonganhsang',
+  'proj-camungdientu',
+  'proj-roitudo',
+  'proj-khucxa-pxtp',
+]);
+
 import { createClient } from '@supabase/supabase-js';
 import { WebProject } from '../types';
 
@@ -31,6 +38,11 @@ export function rowToProject(row: any): WebProject {
     views: Number(row.views || 0),
     likes: Number(row.likes || 0),
     isUserSubmission: Boolean(row.is_user_submission),
+    isFeatured: Boolean(
+      row.is_featured ||
+      FEATURED_PROJECT_IDS.has(String(row.id)) ||
+      (Array.isArray(row.tags) && row.tags.some((t: string) => t.includes('Nổi bật') || t.includes('⭐')))
+    ),
     goLink: row.go_link || '',
   };
 }
