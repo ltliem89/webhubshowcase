@@ -142,11 +142,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             {/* Bronze-Gold Star for Featured Projects */}
             {project.isFeatured && (
               <span
-                className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-600/15 via-yellow-600/20 to-amber-700/15 border border-amber-600/30 text-[#b45309] font-bold text-[10px] shadow-2xs select-none"
-                title="Dự án nổi bật tiêu biểu"
+                className="inline-flex items-center justify-center p-1 rounded-full bg-amber-400/20 border border-amber-400/60 shadow-xs hover:scale-115 transition-transform select-none cursor-pointer group"
+                title="Dự án tiêu biểu"
               >
-                <Star className="w-3.5 h-3.5 fill-[#d97706] text-[#b45309] filter drop-shadow-[0_1px_2px_rgba(180,83,9,0.5)]" />
-                <span className="text-[10px] font-extrabold text-[#92400e] tracking-tight">Nổi bật</span>
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
               </span>
             )}
 

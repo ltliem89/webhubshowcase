@@ -143,6 +143,15 @@ export const TimelineLayerCard: React.FC<TimelineLayerCardProps> = ({
 
           {/* Action Row */}
           <div className="flex items-center space-x-2">
+            {project.isFeatured && (
+              <span
+                className="inline-flex items-center justify-center p-2 rounded-xl bg-amber-400/20 border border-amber-400/60 shadow-xs hover:scale-110 transition-transform select-none cursor-pointer"
+                title="Dự án tiêu biểu"
+              >
+                <Star className="w-4 h-4 fill-amber-400 text-amber-500 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
+              </span>
+            )}
+
             <button
               onClick={handleLike}
               className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center space-x-1.5 transition-colors ${

@@ -51,7 +51,7 @@ import {
   setCommunityApprovedOnly,
 } from './config';
 
-const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v12';
+const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v13';
 const STORAGE_KEY_LANG = 'webhub_language_preference';
 const STORAGE_KEY_ADMIN = 'webhub_admin_session';
 
