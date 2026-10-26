@@ -51,13 +51,12 @@ import {
   setCommunityApprovedOnly,
 } from './config';
 
-const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v16';
+const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v18';
 const STORAGE_KEY_LANG = 'webhub_language_preference';
 const STORAGE_KEY_ADMIN = 'webhub_admin_session';
 
 // Helper to ensure famous platforms and community submissions are cleanly separated
 const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
-  // CĂ¡c dá»¯ liá»‡u máº«u cÅ© Ä‘Ă£ Ä‘Æ°á»£c gá»¡ khá»i báº£n khá»Ÿi táº¡o (demo bĂ i Ä‘Äƒng táº£i, pending, má»¥c ghĂ©p cÅ©)
   const deprecatedSampleIds = new Set<string>([
     'proj-phys-1',
     'proj-chem-1',
@@ -67,6 +66,7 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
     'proj-lit-1',
     'proj-eng-1',
     'proj-pending-1',
+    'proj-1792852428908', // Dự án cũ bị yêu cầu xóa
   ]);
 
   const famousKeywords = [
@@ -82,10 +82,10 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
     'molview',
   ];
 
-  const initialFamous = INITIAL_PROJECTS.filter((p) => p.isFamous);
+  const normalizeUrl = (u: string) => (u || '').toLowerCase().trim().replace(/\/+$/, '');
 
   const updated: WebProject[] = loadedList
-    .filter((p) => !deprecatedSampleIds.has(p.id))
+    .filter((p) => !deprecatedSampleIds.has(p.id) && !p.title.includes('Vật lí 10: Đồ thị độ dịch chuyển'))
     .map((p) => {
       const isFamousMatch = famousKeywords.some(
         (kw) =>
@@ -94,22 +94,49 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
           p.title.toLowerCase().includes(kw)
       );
       const isFamousActual = isFamousMatch || !!p.isFamous;
-      // Giá»¯ dá»¯ liá»‡u cÅ©: bĂ i approved khĂ´ng ná»•i tiáº¿ng â†’ coi lĂ  bĂ i admin Ä‘Ă£ duyá»‡t
-      // (cĂ¡c bĂ i máº«u khá»Ÿi táº¡o Ä‘á»u lĂ  famous nĂªn khĂ´ng bá»‹ tĂ­nh nháº§m)
       const isUserSubmission =
         p.isUserSubmission === true ||
         (p.status === 'approved' && !isFamousActual);
+
+      // Đồng bộ ảnh đại diện chuẩn xác từ INITIAL_PROJECTS nếu bài cộng đồng dính ảnh placeholder unsplash cũ
+      let previewImage = p.previewImage;
+      const initMatch = INITIAL_PROJECTS.find(
+        (init) => init.id === p.id || normalizeUrl(init.url) === normalizeUrl(p.url)
+      );
+      if (initMatch) {
+        if (!previewImage || previewImage.includes('images.unsplash.com') || (!previewImage.startsWith('/previews/') && initMatch.previewImage?.startsWith('/previews/'))) {
+          previewImage = initMatch.previewImage;
+        }
+      }
+
+      // Đảm bảo goLink hợp lệ, không bị dính slug ngắn
+      let goLink = p.goLink;
+      if (initMatch && initMatch.goLink && isValidGoUrl(initMatch.goLink) && !isValidGoUrl(goLink)) {
+        goLink = initMatch.goLink;
+      }
+
+      const isFeatured = p.isFeatured || (initMatch ? initMatch.isFeatured : false);
+
       return {
         ...p,
         isFamous: isFamousActual,
         isUserSubmission,
+        previewImage,
+        goLink,
+        isFeatured,
       };
     });
 
-  // Ensure all projects from INITIAL_PROJECTS (famous & community) are included
+  // Ensure all projects from INITIAL_PROJECTS (famous & community) are included without duplicates
+  const existingUrls = new Set(updated.map((p) => normalizeUrl(p.url)));
+  const existingIds = new Set(updated.map((p) => p.id));
+
   for (const init of INITIAL_PROJECTS) {
-    if (!updated.some((p) => p.id === init.id || p.url === init.url)) {
+    const nUrl = normalizeUrl(init.url);
+    if (!existingIds.has(init.id) && !existingUrls.has(nUrl)) {
       updated.push(init);
+      existingIds.add(init.id);
+      if (nUrl) existingUrls.add(nUrl);
     }
   }
 
@@ -171,42 +198,25 @@ export default function App() {
   // 3. Projects State (Loaded from localStorage with clean migration across all versions or Initial Seed)
   const [projects, setProjects] = useState<WebProject[]>(() => {
     try {
-      const storageKeys = [
-        'webhub_projects_data_v5',
-        'webhub_projects_data_v4',
-        'webhub_projects_data_v3',
-        'webhub_projects_data_v2',
-        'webhub_projects_data_v1',
+      const oldKeys = [
         'webhub_projects_data',
+        ...Array.from({ length: 17 }, (_, i) => `webhub_projects_data_v${i + 1}`)
       ];
-      const mergedList: WebProject[] = [];
-      for (const key of storageKeys) {
-        const saved = localStorage.getItem(key);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              for (const item of parsed) {
-                if (
-                  item &&
-                  item.id &&
-                  !mergedList.some(
-                    (existing) => existing.id === item.id || existing.url === item.url
-                  )
-                ) {
-                  // Giá»¯ nguyĂªn tráº¡ng thĂ¡i (approved / pending / rejected) khi táº£i láº¡i
-                  mergedList.push({ ...item });
-                }
-              }
-            }
-          } catch {
-            // ignore JSON error
+
+      // Kiểm tra cache hiện tại
+      const currentSaved = localStorage.getItem(STORAGE_KEY_PROJECTS);
+      if (currentSaved) {
+        try {
+          const parsed = JSON.parse(currentSaved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return sanitizeAndMigrateProjects(parsed);
           }
-        }
+        } catch {}
       }
 
-      if (mergedList.length > 0) {
-        return sanitizeAndMigrateProjects(mergedList);
+      // Nếu chưa có v18, xóa sạch các key cache cũ để tránh dính ảnh placeholder / dữ liệu lỗi cũ
+      for (const k of oldKeys) {
+        try { localStorage.removeItem(k); } catch {}
       }
     } catch {
       // Fallback
@@ -284,22 +294,38 @@ export default function App() {
       if (cloudProjects && cloudProjects.length > 0) {
         setProjects((prev) => {
           const map = new Map<string, WebProject>();
-          for (const p of prev) {
-            if (p.status === 'pending' || p.status === 'rejected') {
-              map.set(p.id, p);
-            }
-          }
+          const urlMap = new Map<string, string>(); // normalized URL -> ID
+
+          const normalizeUrl = (u: string) => (u || '').toLowerCase().trim().replace(/\/+$/, '');
+
+          // 1. Thêm cloud projects đã duyệt từ Supabase webhub (nguồn chính thức)
           for (const cp of cloudProjects) {
             map.set(cp.id, cp);
+            const nUrl = normalizeUrl(cp.url);
+            if (nUrl) urlMap.set(nUrl, cp.id);
+          }
+
+          // 2. Với các bài pending/rejected ở local hoặc submission:
+          // CHỈ thêm nếu URL CHƯA hề có trong các bài đã duyệt (tránh trùng lặp thẻ dự án)
+          for (const p of prev) {
+            const nUrl = normalizeUrl(p.url);
+            if ((p.status === 'pending' || p.status === 'rejected') && !urlMap.has(nUrl) && !map.has(p.id)) {
+              map.set(p.id, p);
+              if (nUrl) urlMap.set(nUrl, p.id);
+            }
           }
           for (const cs of cloudSubs) {
-            if (!map.has(cs.id)) {
+            const nUrl = normalizeUrl(cs.url);
+            if (!urlMap.has(nUrl) && !map.has(cs.id)) {
               map.set(cs.id, cs);
+              if (nUrl) urlMap.set(nUrl, cs.id);
             }
           }
           for (const ss of sheetSubs) {
-            if (!map.has(ss.id)) {
+            const nUrl = normalizeUrl(ss.url);
+            if (!urlMap.has(nUrl) && !map.has(ss.id)) {
               map.set(ss.id, ss);
+              if (nUrl) urlMap.set(nUrl, ss.id);
             }
           }
           const finalMerged = sanitizeAndMigrateProjects(Array.from(map.values()));

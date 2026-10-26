@@ -15,7 +15,7 @@ import { translations } from '../translations';
 import { countryDisplayName } from '../data/countries';
 import { BrowserMockupFrame } from './BrowserMockupFrame';
 import { formatTimeAgo } from '../utils/screenshot';
-import { getGoUrl } from '../utils/goLink';
+import { getGoUrl, isValidGoUrl } from '../utils/goLink';
 
 interface TimelineLayerCardProps {
   project: WebProject;
@@ -40,11 +40,13 @@ export const TimelineLayerCard: React.FC<TimelineLayerCardProps> = ({
 }) => {
   const t = translations[lang];
   const [isLiked, setIsLiked] = useState(false);
-  const goUrl = project.goLink || getGoUrl(
-    window.location,
-    project.url,
-    { title: project.title, authorName: project.authorName, authorEmail: project.authorContact }
-  );
+  const goUrl = isValidGoUrl(project.goLink)
+    ? project.goLink!
+    : getGoUrl(
+        window.location,
+        project.url,
+        { title: project.title, authorName: project.authorName, authorEmail: project.authorContact }
+      );
   const displayUrl = isAdmin ? undefined : goUrl;
 
   const handleLike = () => {

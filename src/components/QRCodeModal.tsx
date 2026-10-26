@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Copy, Download, ExternalLink, QrCode, Smartphone, X } from 'lucide-react';
 import { generateQrDataUrl } from '../utils/screenshot';
-import { getGoUrl } from '../utils/goLink';
+import { getGoUrl, isValidGoUrl } from '../utils/goLink';
 import { WebProject, Language } from '../types';
 import { translations } from '../translations';
 
@@ -26,7 +26,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
 
   useEffect(() => {
     if (project?.url && isOpen) {
-const accessUrl = isAdmin ? project.url : (project.goLink || getGoUrl(window.location, project.url, { title: project.title, authorName: project.authorName, authorEmail: project.authorContact }));
+const accessUrl = isAdmin ? project.url : (isValidGoUrl(project.goLink) ? project.goLink! : getGoUrl(window.location, project.url, { title: project.title, authorName: project.authorName, authorEmail: project.authorContact }));
       generateQrDataUrl(accessUrl).then((url) => {
         setQrSrc(url);
       });
@@ -36,7 +36,7 @@ const accessUrl = isAdmin ? project.url : (project.goLink || getGoUrl(window.loc
 
   if (!isOpen || !project) return null;
 
-  const accessUrl = isAdmin ? project.url : (project.goLink || getGoUrl(window.location, project.url, { title: project.title, authorName: project.authorName, authorEmail: project.authorContact }));
+  const accessUrl = isAdmin ? project.url : (isValidGoUrl(project.goLink) ? project.goLink! : getGoUrl(window.location, project.url, { title: project.title, authorName: project.authorName, authorEmail: project.authorContact }));
 
   const handleCopy = async () => {
     try {

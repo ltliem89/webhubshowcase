@@ -96,9 +96,23 @@ export function computeGoLink(project: WebProject): string {
 }
 
 /**
- * Ưu tiên link /go/<mã> ĐÃ LƯU trong trường goLink. Chỉ sinh mới khi chưa có.
+ * Kiểm tra xem một chuỗi có phải link che hợp lệ (bắt đầu bằng http://, https:// hoặc /go/)
+ * Tránh trường hợp slug ngắn (ví dụ 'khucxa-pxtp') bị gán nhầm làm link che.
+ */
+export function isValidGoUrl(url?: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  return (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('/go/')
+  );
+}
+
+/**
+ * Ưu tiên link /go/<mã> ĐÃ LƯU trong trường goLink (phải hợp lệ). Chỉ sinh mới khi chưa có.
  */
 export function ensureGoLink(project: WebProject): WebProject {
-  if (project.goLink && project.goLink.trim()) return project;
+  if (isValidGoUrl(project.goLink)) return project;
   return { ...project, goLink: computeGoLink(project) };
 }

@@ -658,7 +658,7 @@ export const INITIAL_PROJECTS: WebProject[] = [
     tags: ["⭐ Nổi bật","Vật lý","Quang học","Khúc xạ","Phản xạ toàn phần"],
     views: 1065,
     likes: 969,
-    goLink: "khucxa-pxtp",
+    goLink: "https://webhubshowcase.vercel.app/go/DEcXSk9ARRMbXQUIDFwJEEISDwRPGA0WXUkZSARRRh9MGUcBWEdOSgFAF0UkRbWIQFMamY3QV6bDBh1CXqTOQxESDlMyENbL1AtCEJTYjEcbQrWSTVMSENbL0AtARFcDD11NYbWYAycKGVkZVykLq98PD0tNSFQIAR8WFF4UGl1bKBIPTA4DAxVdTlEf",
   },
   {
     id: "proj-1792681774994",
@@ -678,7 +678,7 @@ export const INITIAL_PROJECTS: WebProject[] = [
     tags: ["Địa lý","ĐBSCL","Biến đổi khí hậu","Xâm nhập mặn"],
     views: 8,
     likes: 2,
-    goLink: "xam-nhap-man",
+    goLink: "https://webhubshowcase.vercel.app/go/DEcXSk9ARRMbXQUIDFwaVVpcGQ1PGFgPAAlCTwVRT14ECENcBAYKBxoOAA9CWFtVShIMHxkQHksRHAAGRAhAD1oQV1FYWm-y1QhCJh2Dl8ofDTvTmcQMWBFRNQyD0soMDaP_zM2nSlMpEPTcVy2D0tgXD0tNTFQIAScQmY3WGUUyALPSzNz0TlZmS5LZ81kZVUlADVdYD0US",
   },
   {
     id: "proj-roitudo",
