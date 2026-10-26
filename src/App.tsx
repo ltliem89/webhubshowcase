@@ -29,7 +29,12 @@ import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { Globe, Plus, Sparkles } from 'lucide-react';
 import {
   ensureGoLink,
+  isValidGoUrl,
 } from './utils/goLink';
+import {
+  auditAndReconcileWithCloud,
+  SupabaseAuditReport,
+} from './services/cloudAudit';
 import {
   fetchProjectsFromSupabase,
   fetchSubmissionsFromSupabase,
@@ -51,7 +56,7 @@ import {
   setCommunityApprovedOnly,
 } from './config';
 
-const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v19';
+const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v20';
 const STORAGE_KEY_LANG = 'webhub_language_preference';
 const STORAGE_KEY_ADMIN = 'webhub_admin_session';
 
@@ -98,39 +103,25 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
         p.isUserSubmission === true ||
         (p.status === 'approved' && !isFamousActual);
 
-      // Đồng bộ ảnh đại diện chuẩn xác từ INITIAL_PROJECTS nếu bài cộng đồng dính ảnh placeholder unsplash cũ
-      let previewImage = p.previewImage;
       const initMatch = INITIAL_PROJECTS.find(
         (init) => init.id === p.id || normalizeUrl(init.url) === normalizeUrl(p.url)
       );
-      if (initMatch) {
-        if (!previewImage || previewImage.includes('images.unsplash.com') || (!previewImage.startsWith('/previews/') && initMatch.previewImage?.startsWith('/previews/'))) {
-          previewImage = initMatch.previewImage;
-        }
+
+      // Điền fallback chỉ khi dữ liệu bị trống
+      let previewImage = p.previewImage;
+      if (!previewImage && initMatch?.previewImage) {
+        previewImage = initMatch.previewImage;
       }
 
-      // Đảm bảo goLink hợp lệ, không bị dính slug ngắn
       let goLink = p.goLink;
-      if (initMatch && initMatch.goLink && isValidGoUrl(initMatch.goLink) && !isValidGoUrl(goLink)) {
+      if (!isValidGoUrl(goLink) && initMatch?.goLink && isValidGoUrl(initMatch.goLink)) {
         goLink = initMatch.goLink;
       }
 
-      // Đồng bộ cờ isFeatured, ngày đăng và số liệu chuẩn từ initialData
-      let isFeatured = p.isFeatured;
-      let createdAt = p.createdAt;
-      let views = p.views;
-      let likes = p.likes;
-
-      if (initMatch) {
-        if (initMatch.isFeatured !== undefined) {
-          isFeatured = initMatch.isFeatured;
-        }
-        if (initMatch.isFeatured) {
-          createdAt = initMatch.createdAt;
-          views = 0;
-          likes = 0;
-        }
-      }
+      let isFeatured = p.isFeatured !== undefined ? p.isFeatured : (initMatch?.isFeatured ?? false);
+      let createdAt = p.createdAt || initMatch?.createdAt || new Date().toISOString();
+      let views = typeof p.views === 'number' ? p.views : (initMatch?.views ?? 0);
+      let likes = typeof p.likes === 'number' ? p.likes : (initMatch?.likes ?? 0);
 
       return {
         ...p,
@@ -145,11 +136,12 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
       };
     });
 
-  // Ensure all projects from INITIAL_PROJECTS (famous & community) are included without duplicates
+  // Chỉ bổ sung các nền tảng nổi tiếng quốc tế từ INITIAL_PROJECTS nếu chưa có
   const existingUrls = new Set(updated.map((p) => normalizeUrl(p.url)));
   const existingIds = new Set(updated.map((p) => p.id));
 
   for (const init of INITIAL_PROJECTS) {
+    if (!init.isFamous) continue;
     const nUrl = normalizeUrl(init.url);
     if (!existingIds.has(init.id) && !existingUrls.has(nUrl)) {
       updated.push(init);
@@ -253,6 +245,7 @@ export default function App() {
 
   // Trạng thái đồng bộ Supabase Cloud
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
+  const [cloudAuditReport, setCloudAuditReport] = useState<SupabaseAuditReport | null>(null);
 
   // 4. View Mode & Filter State
   const [viewMode, setViewMode] = useState<ViewMode>('expanded');
@@ -297,10 +290,10 @@ export default function App() {
   }, []);
 
   /**
-   * Đồng bộ dữ liệu 2 chiều với Supabase Cloud Database & bảng đợi Google Sheet:
+   * Đồng bộ & rà soát dữ liệu 2 chiều với Supabase Cloud Database (Single Source of Truth):
    * mezcsiaozymspbroflye.supabase.co
    */
-  const syncFromSupabase = useCallback(async () => {
+  const syncFromSupabase = useCallback(async (isManual = false) => {
     try {
       setIsCloudSyncing(true);
       const [cloudProjects, cloudSubs, sheetSubs] = await Promise.all([
@@ -311,46 +304,49 @@ export default function App() {
 
       if (cloudProjects && cloudProjects.length > 0) {
         setProjects((prev) => {
-          const map = new Map<string, WebProject>();
-          const urlMap = new Map<string, string>(); // normalized URL -> ID
+          const { reconciled, report } = auditAndReconcileWithCloud(
+            cloudProjects,
+            prev,
+            cloudSubs,
+            sheetSubs
+          );
 
-          const normalizeUrl = (u: string) => (u || '').toLowerCase().trim().replace(/\/+$/, '');
+          // Cập nhật biến trạng thái rà soát vào React state
+          setCloudAuditReport(report);
 
-          // 1. Thêm cloud projects đã duyệt từ Supabase webhub (nguồn chính thức)
-          for (const cp of cloudProjects) {
-            map.set(cp.id, cp);
-            const nUrl = normalizeUrl(cp.url);
-            if (nUrl) urlMap.set(nUrl, cp.id);
+          // Gán vào biến window để rà soát hoặc kích hoạt kiểm tra bất kỳ lúc nào
+          if (typeof window !== 'undefined') {
+            (window as any).__WEBHUB_AUDIT__ = report;
+            (window as any).__AUDIT_SUPABASE__ = () => syncFromSupabase(true);
           }
 
-          // 2. Với các bài pending/rejected ở local hoặc submission:
-          // CHỈ thêm nếu URL CHƯA hề có trong các bài đã duyệt (tránh trùng lặp thẻ dự án)
-          for (const p of prev) {
-            const nUrl = normalizeUrl(p.url);
-            if ((p.status === 'pending' || p.status === 'rejected') && !urlMap.has(nUrl) && !map.has(p.id)) {
-              map.set(p.id, p);
-              if (nUrl) urlMap.set(nUrl, p.id);
-            }
-          }
-          for (const cs of cloudSubs) {
-            const nUrl = normalizeUrl(cs.url);
-            if (!urlMap.has(nUrl) && !map.has(cs.id)) {
-              map.set(cs.id, cs);
-              if (nUrl) urlMap.set(nUrl, cs.id);
-            }
-          }
-          for (const ss of sheetSubs) {
-            const nUrl = normalizeUrl(ss.url);
-            if (!urlMap.has(nUrl) && !map.has(ss.id)) {
-              map.set(ss.id, ss);
-              if (nUrl) urlMap.set(nUrl, ss.id);
-            }
-          }
-          const finalMerged = sanitizeAndMigrateProjects(Array.from(map.values()));
+          // Lưu bản sao đã rà soát vào cache trình duyệt
           try {
-            localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(finalMerged));
-          } catch {}
-          return finalMerged;
+            localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(reconciled));
+          } catch (e) {
+            console.warn('Lỗi ghi cache localStorage:', e);
+          }
+
+          // Xuất log đối soát ra Console
+          if (report.discrepanciesCount > 0) {
+            console.groupCollapsed(
+              `%c[Supabase Audit]%c Đã rà soát ${report.totalCloudProjects} dự án. Cập nhật ${report.discrepanciesCount} mục sai lệch/mới từ Cloud (${report.lastSyncedAt})`,
+              'background: #4f46e5; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;',
+              'color: inherit;'
+            );
+            if (report.discrepancies.length > 0) console.table(report.discrepancies);
+            if (report.newProjects.length > 0) console.log('Dự án mới từ Cloud:', report.newProjects);
+            if (report.removedProjects.length > 0) console.log('Dự án đã gỡ trên Supabase:', report.removedProjects);
+            console.groupEnd();
+          } else {
+            console.log(
+              `%c[Supabase Audit]%c Dữ liệu trên web hoàn toàn đồng bộ với Supabase (${report.totalCloudProjects} dự án, ${report.lastSyncedAt})`,
+              'background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;',
+              'color: inherit;'
+            );
+          }
+
+          return reconciled;
         });
       }
     } catch (err) {
@@ -360,7 +356,7 @@ export default function App() {
     }
   }, []);
 
-  // Tải dữ liệu từ Supabase khi mở app & lắng nghe Realtime trên bảng webhub
+  // Tải dữ liệu từ Supabase khi mở app & lắng nghe Realtime trên cả bảng webhub và projects
   useEffect(() => {
     syncFromSupabase();
 
@@ -369,7 +365,16 @@ export default function App() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'webhub' },
-        () => {
+        (payload) => {
+          console.log('[Supabase Realtime webhub] Thay đổi:', payload);
+          syncFromSupabase();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'projects' },
+        (payload) => {
+          console.log('[Supabase Realtime projects] Thay đổi:', payload);
           syncFromSupabase();
         }
       )
@@ -635,6 +640,8 @@ export default function App() {
         onOpenSubmit={handleOpenSubmitNew}
         pendingCount={pendingCount}
         isCloudSyncing={isCloudSyncing}
+        onRefreshSync={() => syncFromSupabase(true)}
+        lastSyncedAt={cloudAuditReport?.lastSyncedAt}
       />
 
       {/* Main Container */}

@@ -8,9 +8,9 @@ import { createClient } from '@supabase/supabase-js';
 import { WebProject } from '../types';
 
 export const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || 'https://mezcsiaozymspbroflye.supabase.co';
+  import.meta.env?.VITE_SUPABASE_URL || 'https://mezcsiaozymspbroflye.supabase.co';
 export const SUPABASE_ANON_KEY =
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_Rzq-U1RYiZTiTX6IbFNnFA_xOT6_3ba';
+  import.meta.env?.VITE_SUPABASE_ANON_KEY || 'sb_publishable_Rzq-U1RYiZTiTX6IbFNnFA_xOT6_3ba';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -38,9 +38,9 @@ export function rowToProject(row: any): WebProject {
     likes: Number(row.likes || 0),
     isUserSubmission: Boolean(row.is_user_submission),
     isFeatured: Boolean(
-      row.is_featured ||
-      FEATURED_PROJECT_IDS.has(String(row.id)) ||
-      (Array.isArray(row.tags) && row.tags.some((t: string) => t.includes('Nổi bật') || t.includes('⭐')))
+      row.is_featured === true ||
+      (Array.isArray(row.tags) && row.tags.some((t: string) => typeof t === 'string' && (t.includes('Nổi bật') || t.includes('⭐')))) ||
+      (row.is_featured === undefined && (!row.tags || row.tags.length === 0) && FEATURED_PROJECT_IDS.has(String(row.id)))
     ),
     goLink: row.go_link || '',
   };

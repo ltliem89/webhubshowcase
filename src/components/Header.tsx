@@ -15,10 +15,12 @@ interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   isAdmin: boolean;
-  onOpenAdmin: () => void;
-  onOpenSubmit: () => void;
+  onOpenAdmin: ({lastSyncedAt}) => void;
+  onOpenSubmit: ({lastSyncedAt}) => void;
   pendingCount: number;
   isCloudSyncing?: boolean;
+  onRefreshSync?: () => void;
+  lastSyncedAt?: string;
 }
 
 const languages: { code: Language; name: string; flag: string }[] = [
@@ -44,6 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSubmit,
   pendingCount,
   isCloudSyncing = false,
+  onRefreshSync,
+  lastSyncedAt,
 }) => {
   const t = translations[lang];
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -91,18 +95,44 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action controls */}
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            {/* Background cloud sync non-intrusive indicator */}
-            {isCloudSyncing && (
-              <div
-                className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-50/90 border border-indigo-200/70 text-indigo-700 text-xs font-semibold animate-fade-in select-none"
-                title={t.amSyncing}
-                role="status"
-                aria-live="polite"
-              >
-                <RefreshCw className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
-                <span className="hidden md:inline">{t.amSyncing}</span>
-              </div>
-            )}
+            {/* Supabase Live Cloud Status & Audit Trigger */}
+            <button
+              id="header-supabase-sync-btn"
+              onClick={onRefreshSync}
+              disabled={isCloudSyncing}
+              title={
+                isCloudSyncing
+                  ? 'Đang kết nối và rà soát dữ liệu với Supabase...'
+                  : lastSyncedAt
+                  ? `Supabase Live: Đã rà soát & cập nhật lúc ${lastSyncedAt}. Bấm để rà soát lại.`
+                  : 'Supabase Live: Bấm để rà soát và cập nhật dữ liệu với Supabase'
+              }
+              className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold select-none transition-all cursor-pointer ${
+                isCloudSyncing
+                  ? 'bg-indigo-50/90 border-indigo-300 text-indigo-700 animate-pulse'
+                  : 'bg-emerald-50 hover:bg-emerald-100/90 border-emerald-200/80 text-emerald-800 hover:shadow-xs'
+              }`}
+            >
+              {isCloudSyncing ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+                  <span className="hidden sm:inline">Đang rà soát...</span>
+                </>
+              ) : (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="font-semibold text-emerald-800">Supabase Live</span>
+                  {lastSyncedAt && (
+                    <span className="hidden lg:inline text-[10px] text-emerald-600 font-normal">
+                      ({lastSyncedAt})
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
 
             {/* Language Switcher Dropdown */}
             <div className="relative">
