@@ -7,6 +7,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { Language } from '../types';
+import { SentinelMetrics } from '../services/webhubSentinel';
 import { translations } from '../translations';
 
 interface HeaderProps {
@@ -21,6 +22,7 @@ interface HeaderProps {
   isCloudSyncing?: boolean;
   onRefreshSync?: () => void;
   lastSyncedAt?: string;
+  sentinelMetrics?: SentinelMetrics | null;
 }
 
 const languages: { code: Language; name: string; flag: string }[] = [
@@ -48,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
   isCloudSyncing = false,
   onRefreshSync,
   lastSyncedAt,
+  sentinelMetrics,
 }) => {
   const t = translations[lang];
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -95,14 +98,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action controls */}
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            {/* Supabase Live Cloud Status & Audit Trigger */}
+            {/* Supabase Live Cloud Status & Sentinel Audit Trigger */}
             <button
               id="header-supabase-sync-btn"
               onClick={onRefreshSync}
               disabled={isCloudSyncing}
               title={
                 isCloudSyncing
-                  ? 'Đang kết nối và rà soát dữ liệu với Supabase...'
+                  ? 'Đang kết nối và rà soát dữ liệu với Supabase & Vercel...'
+                  : sentinelMetrics
+                  ? `[WebHub Sentinel Tình Báo Thông Minh]\n• Trạng thái: ${sentinelMetrics.status === 'synced' ? 'Đã đồng bộ' : sentinelMetrics.status}\n• Đã kiểm tra: ${sentinelMetrics.totalChecks} lần (${sentinelMetrics.notModified304Count} lần 304 Not Modified)\n• Tiết kiệm băng thông: ~${sentinelMetrics.bandwidthSavedKB} KB\n• Kiểm tra gần nhất: ${sentinelMetrics.lastCheckedAt || lastSyncedAt}\nNhấp để rà soát phiên bản ngay tức thì!`
                   : lastSyncedAt
                   ? `Supabase Live: Đã rà soát & cập nhật lúc ${lastSyncedAt}. Bấm để rà soát lại.`
                   : 'Supabase Live: Bấm để rà soát và cập nhật dữ liệu với Supabase'
@@ -125,11 +130,15 @@ export const Header: React.FC<HeaderProps> = ({
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
                   <span className="font-semibold text-emerald-800">Supabase Live</span>
-                  {lastSyncedAt && (
+                  {sentinelMetrics && sentinelMetrics.bandwidthSavedKB > 0 ? (
+                    <span className="hidden lg:inline text-[10px] text-emerald-600 font-medium">
+                      (Tiết kiệm {sentinelMetrics.bandwidthSavedKB}KB)
+                    </span>
+                  ) : lastSyncedAt ? (
                     <span className="hidden lg:inline text-[10px] text-emerald-600 font-normal">
                       ({lastSyncedAt})
                     </span>
-                  )}
+                  ) : null}
                 </>
               )}
             </button>

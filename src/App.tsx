@@ -36,6 +36,10 @@ import {
   SupabaseAuditReport,
 } from './services/cloudAudit';
 import {
+  webhubSentinel,
+  SentinelMetrics,
+} from './services/webhubSentinel';
+import {
   fetchProjectsFromSupabase,
   fetchSubmissionsFromSupabase,
   submitToSupabase,
@@ -246,6 +250,7 @@ export default function App() {
   // Trạng thái đồng bộ Supabase Cloud
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [cloudAuditReport, setCloudAuditReport] = useState<SupabaseAuditReport | null>(null);
+  const [sentinelMetrics, setSentinelMetrics] = useState<SentinelMetrics | null>(null);
 
   // 4. View Mode & Filter State
   const [viewMode, setViewMode] = useState<ViewMode>('expanded');
@@ -346,6 +351,9 @@ export default function App() {
             );
           }
 
+          // Cập nhật mã băm phiên bản cho Sentinel
+          webhubSentinel.setLocalVersionHash(`v20_${reconciled.length}_${report.timestamp}`);
+
           return reconciled;
         });
       }
@@ -356,9 +364,15 @@ export default function App() {
     }
   }, []);
 
-  // Tải dữ liệu từ Supabase khi mở app & lắng nghe Realtime trên cả bảng webhub và projects
+  // Tải dữ liệu từ Supabase khi mở app, khởi động Sentinel tình báo & lắng nghe Realtime
   useEffect(() => {
     syncFromSupabase();
+
+    // Khởi động Sentinel kiểm soát phiên bản siêu nhẹ
+    const unsubscribeSentinel = webhubSentinel.subscribe(setSentinelMetrics);
+    webhubSentinel.init('v20_init', async () => {
+      await syncFromSupabase(false);
+    });
 
     const channel = supabase
       .channel('public:webhub-realtime')
@@ -366,21 +380,24 @@ export default function App() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'webhub' },
         (payload) => {
-          console.log('[Supabase Realtime webhub] Thay đổi:', payload);
-          syncFromSupabase();
+          console.log('[Supabase Realtime webhub] Thay đổi phát hiện:', payload);
+          webhubSentinel.notifyRealtimeEvent(payload);
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'projects' },
         (payload) => {
-          console.log('[Supabase Realtime projects] Thay đổi:', payload);
-          syncFromSupabase();
+          console.log('[Supabase Realtime projects] Thay đổi phát hiện:', payload);
+          webhubSentinel.notifyRealtimeEvent(payload);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        webhubSentinel.setRealtimeStatus(status === 'SUBSCRIBED');
+      });
 
     return () => {
+      unsubscribeSentinel();
       supabase.removeChannel(channel);
     };
   }, [syncFromSupabase]);
@@ -642,6 +659,7 @@ export default function App() {
         isCloudSyncing={isCloudSyncing}
         onRefreshSync={() => syncFromSupabase(true)}
         lastSyncedAt={cloudAuditReport?.lastSyncedAt}
+        sentinelMetrics={sentinelMetrics}
       />
 
       {/* Main Container */}

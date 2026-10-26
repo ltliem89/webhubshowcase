@@ -109,7 +109,19 @@ export default function handler(req: IncomingMessage, res: ServerResponse) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>${title}</title>
+<title>${title} | WebHub Showcase</title>
+<meta name="description" content="Mô phỏng giáo dục trực tuyến bởi ${author}. Trải nghiệm tương tác mượt mà trên WebHub Showcase." />
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="${title} | WebHub Showcase" />
+<meta property="og:description" content="Mô phỏng giáo dục trực tuyến bởi ${author}. Trải nghiệm tương tác mượt mà trên WebHub Showcase." />
+<meta property="og:image" content="${proto}://${host}/logo.png" />
+<meta property="og:site_name" content="WebHub Showcase" />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${title} | WebHub Showcase" />
+<meta name="twitter:description" content="Mô phỏng giáo dục trực tuyến bởi ${author}." />
+<meta name="twitter:image" content="${proto}://${host}/logo.png" />
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
