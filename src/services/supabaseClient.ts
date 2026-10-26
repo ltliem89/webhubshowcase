@@ -1,8 +1,7 @@
 export const FEATURED_PROJECT_IDS = new Set([
-  'proj-nangluonganhsang',
-  'proj-camungdientu',
   'proj-roitudo',
-  'proj-khucxa-pxtp',
+  'proj-camungdientu',
+  'proj-nangluonganhsang',
 ]);
 
 import { createClient } from '@supabase/supabase-js';

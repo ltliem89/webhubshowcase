@@ -51,7 +51,7 @@ import {
   setCommunityApprovedOnly,
 } from './config';
 
-const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v18';
+const STORAGE_KEY_PROJECTS = 'webhub_projects_data_v19';
 const STORAGE_KEY_LANG = 'webhub_language_preference';
 const STORAGE_KEY_ADMIN = 'webhub_admin_session';
 
@@ -115,7 +115,22 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
         goLink = initMatch.goLink;
       }
 
-      const isFeatured = p.isFeatured || (initMatch ? initMatch.isFeatured : false);
+      // Đồng bộ cờ isFeatured, ngày đăng và số liệu chuẩn từ initialData
+      let isFeatured = p.isFeatured;
+      let createdAt = p.createdAt;
+      let views = p.views;
+      let likes = p.likes;
+
+      if (initMatch) {
+        if (initMatch.isFeatured !== undefined) {
+          isFeatured = initMatch.isFeatured;
+        }
+        if (initMatch.isFeatured) {
+          createdAt = initMatch.createdAt;
+          views = 0;
+          likes = 0;
+        }
+      }
 
       return {
         ...p,
@@ -124,6 +139,9 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
         previewImage,
         goLink,
         isFeatured,
+        createdAt,
+        views,
+        likes,
       };
     });
 
@@ -200,7 +218,7 @@ export default function App() {
     try {
       const oldKeys = [
         'webhub_projects_data',
-        ...Array.from({ length: 17 }, (_, i) => `webhub_projects_data_v${i + 1}`)
+        ...Array.from({ length: 18 }, (_, i) => `webhub_projects_data_v${i + 1}`)
       ];
 
       // Kiểm tra cache hiện tại

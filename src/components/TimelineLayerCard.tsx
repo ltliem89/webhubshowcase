@@ -137,10 +137,12 @@ export const TimelineLayerCard: React.FC<TimelineLayerCardProps> = ({
               <User className="w-3.5 h-3.5 text-slate-400" />
               <span>{project.authorName}</span>
             </span>
-            <span className="flex items-center space-x-1">
-              <Eye className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.viewsCount.replace('{count}', String(project.views))}</span>
-            </span>
+            {!project.isFeatured && (
+              <span className="flex items-center space-x-1">
+                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                <span>{t.viewsCount.replace('{count}', String(project.views))}</span>
+              </span>
+            )}
           </div>
 
           {/* Action Row */}
@@ -154,17 +156,19 @@ export const TimelineLayerCard: React.FC<TimelineLayerCardProps> = ({
               </span>
             )}
 
-            <button
-              onClick={handleLike}
-              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center space-x-1.5 transition-colors ${
-                isLiked
-                  ? 'border-rose-200 bg-rose-50 text-rose-600'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{project.likes + (isLiked ? 1 : 0)}</span>
-            </button>
+            {!project.isFeatured && (
+              <button
+                onClick={handleLike}
+                className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center space-x-1.5 transition-colors ${
+                  isLiked
+                    ? 'border-rose-200 bg-rose-50 text-rose-600'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
+                <span>{project.likes + (isLiked ? 1 : 0)}</span>
+              </button>
+            )}
 
             <button
               onClick={() => onOpenQR(project)}

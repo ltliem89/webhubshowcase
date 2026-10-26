@@ -151,16 +151,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               </span>
             )}
 
-            {/* Like button */}
-            <button
-              onClick={handleLike}
-              className={`flex items-center space-x-1 text-xs transition-colors ${
-                isLiked ? 'text-rose-600 font-bold' : 'text-slate-400 hover:text-rose-500'
-              }`}
-            >
-              <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{project.likes + (isLiked ? 1 : 0)}</span>
-            </button>
+            {/* Like button (Ẩn đối với dự án có sao) */}
+            {!project.isFeatured && (
+              <button
+                onClick={handleLike}
+                className={`flex items-center space-x-1 text-xs transition-colors ${
+                  isLiked ? 'text-rose-600 font-bold' : 'text-slate-400 hover:text-rose-500'
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
+                <span>{project.likes + (isLiked ? 1 : 0)}</span>
+              </button>
+            )}
           </div>
         </div>
 
