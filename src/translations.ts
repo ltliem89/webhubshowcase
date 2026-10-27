@@ -35,6 +35,9 @@ export interface Translations {
   sortOldest: string;
   sortMostLiked: string;
   sortMostViewed: string;
+  filter3DLabel?: string;
+  filter3DAll?: string;
+  filter3DOnly?: string;
   viewModeGrid: string;
   viewModeTimeline: string;
   viewModeCompact: string;
@@ -349,6 +352,9 @@ export const translations: Record<Language, Translations> = {
     sortOldest: 'Cũ nhất',
     sortMostLiked: 'Nhiều lượt thích nhất',
     sortMostViewed: 'Nhiều lượt xem nhất',
+    filter3DLabel: 'Mô phỏng 3D',
+    filter3DAll: 'Tất cả',
+    filter3DOnly: '3D',
     viewModeGrid: 'Dạng lưới (Hàng & Cột)',
     viewModeTimeline: 'Dạng lớp ảnh (Thời gian)',
     viewModeCompact: 'Xem rút gọn (Tên & Lĩnh vực)',
@@ -699,6 +705,9 @@ export const translations: Record<Language, Translations> = {
     sortOldest: 'Oldest First',
     sortMostLiked: 'Most Liked',
     sortMostViewed: 'Most Viewed',
+    filter3DLabel: '3D Simulation',
+    filter3DAll: 'All',
+    filter3DOnly: '3D',
     viewModeGrid: 'Grid (Rows & Cols)',
     viewModeTimeline: 'Chronological Layers',
     viewModeCompact: 'Compact View',
@@ -2405,6 +2414,9 @@ export const translations: Record<Language, Translations> = {
     sortOldest: 'Terlama',
     sortMostLiked: 'Paling Disukai',
     sortMostViewed: 'Paling Banyak Dilihat',
+    filter3DLabel: '3D',
+    filter3DAll: 'All',
+    filter3DOnly: '3D',
     viewModeGrid: 'Tampilan Grid (Baris & Kolom)',
     viewModeTimeline: 'Tampilan Kronologis',
     viewModeCompact: 'Tampilan Ringkas',
@@ -3083,6 +3095,9 @@ export const translations: Record<Language, Translations> = {
     sortOldest: 'Pinakaluma',
     sortMostLiked: 'Pinakamaraming Like',
     sortMostViewed: 'Pinakamadaming Views',
+    filter3DLabel: '3D',
+    filter3DAll: 'All',
+    filter3DOnly: '3D',
     viewModeGrid: 'Grid View (Rows & Columns)',
     viewModeTimeline: 'Kronolohikong View',
     viewModeCompact: 'Compact View',

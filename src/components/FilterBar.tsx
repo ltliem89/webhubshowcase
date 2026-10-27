@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   AlignLeft,
+  Box,
   CheckCircle2,
   LayoutGrid,
   RotateCcw,
@@ -77,6 +78,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     onFilterChange({ ...filters, sortBy });
   };
 
+  const handle3DChange = (only3D: boolean) => {
+    onFilterChange({ ...filters, only3D });
+  };
+
   const toggleFamousFilter = (isFamous: boolean) => {
     onFilterChange({ ...filters, onlyFamous: isFamous });
     if (onCloseGuide) onCloseGuide();
@@ -89,13 +94,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       educationLevel: 'ALL',
       sortBy: 'newest',
       onlyFamous: false,
+      only3D: false,
     });
   };
 
   const isFiltered =
     filters.category !== 'ALL' ||
     filters.educationLevel !== 'ALL' ||
-    filters.searchQuery !== '';
+    filters.searchQuery !== '' ||
+    !!filters.only3D;
 
   return (
     <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-xs mb-5 space-y-3">
@@ -221,7 +228,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* 2. Hàng bộ lọc: Môn học, Cấp học, Sắp xếp theo - ĐƯỢC TỐI ƯU TRÊN MỌI THIẾT BỊ */}
       {!showGuide && (
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 items-center">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 items-end">
         {/* Môn học / Lĩnh vực (Category) */}
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5 truncate">
@@ -271,13 +278,53 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             id="filter-sort-select"
             value={filters.sortBy}
             onChange={(e) => handleSortChange(e.target.value as FilterState['sortBy'])}
-            className="w-full px-2 py-1.5 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[11px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer"
+            className="w-full px-2 py-1.5 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[11px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer h-[34px]"
           >
             <option value="newest">🕒 {t.sortNewest}</option>
             <option value="most_liked">❤️ {t.sortMostLiked}</option>
             <option value="most_viewed">👁️ {t.sortMostViewed}</option>
             <option value="oldest">⏳ {t.sortOldest}</option>
           </select>
+        </div>
+
+        {/* Công tắc lọc 3D (Ngay sau Sắp xếp theo) */}
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5 truncate flex items-center justify-between">
+            <span>{t.filter3DLabel || 'Mô phỏng 3D'}</span>
+            {filters.only3D && (
+              <span className="text-[9px] font-black text-cyan-600 uppercase tracking-wider">Đang bật</span>
+            )}
+          </label>
+          <div className="flex items-center p-0.5 bg-slate-100/90 rounded-xl border border-slate-200 h-[34px]">
+            {/* Tùy chọn 1: Tất cả (Mặc định) */}
+            <button
+              id="filter-3d-all-btn"
+              type="button"
+              onClick={() => handle3DChange(false)}
+              className={`flex-1 h-full rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer truncate px-2 text-center select-none ${
+                !filters.only3D
+                  ? 'bg-white text-slate-900 shadow-xs font-bold border border-slate-200/80'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {t.filter3DAll || 'Tất cả'}
+            </button>
+
+            {/* Tùy chọn 2: 3D (Đổi màu khi chọn) */}
+            <button
+              id="filter-3d-only-btn"
+              type="button"
+              onClick={() => handle3DChange(true)}
+              className={`flex-1 h-full rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 px-2 text-center select-none ${
+                filters.only3D
+                  ? 'bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-md border border-cyan-300 ring-2 ring-cyan-400/30'
+                  : 'text-slate-500 hover:text-indigo-600'
+              }`}
+            >
+              <Box className={`w-3.5 h-3.5 ${filters.only3D ? 'text-cyan-200 stroke-[2.5]' : 'text-slate-400'}`} />
+              <span>{t.filter3DOnly || '3D'}</span>
+            </button>
+          </div>
         </div>
       </div>
       )}

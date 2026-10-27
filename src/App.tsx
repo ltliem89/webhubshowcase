@@ -277,6 +277,7 @@ export default function App() {
     educationLevel: 'ALL',
     sortBy: 'newest',
     onlyFamous: false,
+    only3D: false,
   });
   // Tab "Hướng dẫn tạo mô phỏng" — khi bật, ẩn danh sách web và hiện hướng dẫn
   const [showGuide, setShowGuide] = useState(false);
@@ -615,6 +616,11 @@ export default function App() {
           filters.educationLevel !== 'ALL' &&
           project.educationLevel !== filters.educationLevel
         ) {
+          return false;
+        }
+
+        // 3D filter toggle
+        if (filters.only3D && !project.is3D) {
           return false;
         }
 

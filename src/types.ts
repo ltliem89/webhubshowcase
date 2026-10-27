@@ -103,5 +103,6 @@ export interface FilterState {
   educationLevel: EducationLevelId | 'ALL';
   sortBy: 'newest' | 'oldest' | 'most_liked' | 'most_viewed';
   onlyFamous: boolean;
+  only3D?: boolean;
 }
 
