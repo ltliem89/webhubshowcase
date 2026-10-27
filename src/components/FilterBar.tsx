@@ -105,7 +105,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     !!filters.only3D;
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-xs mb-5 space-y-3">
+    <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-2.5 sm:p-4 shadow-xs mb-5 space-y-2.5 sm:space-y-3">
       {/* 1. Thanh điều khiển chính: Hai Tab rõ ràng [📤 Bài đăng tải] & [⭐ Nổi tiếng] cùng cụm Icon chế độ xem */}
       <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 flex-wrap sm:flex-nowrap">
         {/* Bên trái: 2 Tab phân biệt rõ ràng */}
@@ -226,19 +226,20 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
       </div>
 
-      {/* 2. Hàng bộ lọc: Môn học, Cấp học, Sắp xếp theo - ĐƯỢC TỐI ƯU TRÊN MỌI THIẾT BỊ */}
+      {/* 2. Hàng bộ lọc: Môn học, Cấp học, Sắp xếp theo, Mô phỏng 3D - GỌN TRÊN 1 HÀNG CHO CẢ MOBILE & DESKTOP */}
       {!showGuide && (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 items-end">
+      <div className="grid grid-cols-4 gap-1 sm:gap-2.5 items-end">
         {/* Môn học / Lĩnh vực (Category) */}
-        <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5 truncate">
-            {t.categoryLabel}
+        <div className="min-w-0">
+          <label className="block text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-1 truncate" title={t.categoryLabel}>
+            <span className="hidden sm:inline">📁 {t.categoryLabel}</span>
+            <span className="sm:hidden flex items-center gap-0.5">📁 {lang === 'vi' ? 'Lĩnh vực' : t.categoryLabel}</span>
           </label>
           <select
             id="filter-category-select"
             value={filters.category}
             onChange={(e) => handleCategoryChange(e.target.value as CategoryId | 'ALL')}
-            className="w-full px-2 py-1.5 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[11px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer"
+            className="w-full px-1 sm:px-2 py-1 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[10px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer h-[34px]"
           >
             <option value="ALL">📁 {t.allCategories}</option>
             {VN_SUBJECTS.map((subj) => (
@@ -250,15 +251,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
 
         {/* Cấp học phù hợp (Education Level) */}
-        <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5 truncate">
-            {t.levelLabel}
+        <div className="min-w-0">
+          <label className="block text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-1 truncate" title={t.levelLabel}>
+            <span className="hidden sm:inline">🎓 {t.levelLabel}</span>
+            <span className="sm:hidden flex items-center gap-0.5">🎓 {lang === 'vi' ? 'Cấp học' : t.levelLabel}</span>
           </label>
           <select
             id="filter-level-select"
             value={filters.educationLevel}
             onChange={(e) => handleLevelChange(e.target.value as EducationLevelId | 'ALL')}
-            className="w-full px-2 py-1.5 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[11px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer"
+            className="w-full px-1 sm:px-2 py-1 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[10px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer h-[34px]"
           >
             <option value="ALL">🎓 {t.allLevels}</option>
             {Object.entries(t.educationLevelNames).map(([id, name]) => (
@@ -270,15 +272,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
 
         {/* Sắp xếp theo (Sort By) */}
-        <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5 truncate">
-            {t.sortBy}
+        <div className="min-w-0">
+          <label className="block text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-1 truncate" title={t.sortBy}>
+            <span className="hidden sm:inline">🕒 {t.sortBy}</span>
+            <span className="sm:hidden flex items-center gap-0.5">🕒 {lang === 'vi' ? 'Sắp xếp' : t.sortBy}</span>
           </label>
           <select
             id="filter-sort-select"
             value={filters.sortBy}
             onChange={(e) => handleSortChange(e.target.value as FilterState['sortBy'])}
-            className="w-full px-2 py-1.5 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[11px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer h-[34px]"
+            className="w-full px-1 sm:px-2 py-1 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-slate-200 text-[10px] sm:text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 transition-colors truncate cursor-pointer h-[34px]"
           >
             <option value="newest">🕒 {t.sortNewest}</option>
             <option value="most_liked">❤️ {t.sortMostLiked}</option>
@@ -288,11 +291,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
 
         {/* Công tắc lọc 3D (Ngay sau Sắp xếp theo) */}
-        <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5 truncate flex items-center justify-between">
-            <span>{t.filter3DLabel || 'Mô phỏng 3D'}</span>
+        <div className="min-w-0">
+          <label className="block text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-1 truncate flex items-center justify-between" title={t.filter3DLabel || 'Mô phỏng 3D'}>
+            <span className="hidden sm:inline">🧊 {t.filter3DLabel || 'Mô phỏng 3D'}</span>
+            <span className="sm:hidden flex items-center gap-0.5">🧊 3D</span>
             {filters.only3D && (
-              <span className="text-[9px] font-black text-cyan-600 uppercase tracking-wider">Đang bật</span>
+              <span className="text-[8px] sm:text-[9px] font-black text-cyan-600 uppercase tracking-wider hidden xs:inline">ON</span>
             )}
           </label>
           <div className="flex items-center p-0.5 bg-slate-100/90 rounded-xl border border-slate-200 h-[34px]">
@@ -301,13 +305,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               id="filter-3d-all-btn"
               type="button"
               onClick={() => handle3DChange(false)}
-              className={`flex-1 h-full rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer truncate px-2 text-center select-none ${
+              className={`flex-1 h-full rounded-lg text-[9px] sm:text-xs font-semibold transition-all cursor-pointer truncate px-0.5 sm:px-1.5 text-center select-none flex items-center justify-center ${
                 !filters.only3D
                   ? 'bg-white text-slate-900 shadow-xs font-bold border border-slate-200/80'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
+              title={t.filter3DAll || 'Tất cả'}
             >
-              {t.filter3DAll || 'Tất cả'}
+              <span className="truncate">{t.filter3DAll || 'Tất cả'}</span>
             </button>
 
             {/* Tùy chọn 2: 3D (Đổi màu khi chọn) */}
@@ -315,14 +320,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               id="filter-3d-only-btn"
               type="button"
               onClick={() => handle3DChange(true)}
-              className={`flex-1 h-full rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 px-2 text-center select-none ${
+              className={`flex-1 h-full rounded-lg text-[9px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-0.5 sm:gap-1 px-0.5 sm:px-1.5 text-center select-none ${
                 filters.only3D
-                  ? 'bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-md border border-cyan-300 ring-2 ring-cyan-400/30'
+                  ? 'bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-md border border-cyan-300 ring-1 sm:ring-2 ring-cyan-400/30'
                   : 'text-slate-500 hover:text-indigo-600'
               }`}
+              title="Chỉ 3D"
             >
-              <Box className={`w-3.5 h-3.5 ${filters.only3D ? 'text-cyan-200 stroke-[2.5]' : 'text-slate-400'}`} />
-              <span>{t.filter3DOnly || '3D'}</span>
+              <Box className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${filters.only3D ? 'text-cyan-200 stroke-[2.5]' : 'text-slate-400'}`} />
+              <span className="truncate">{t.filter3DOnly || '3D'}</span>
             </button>
           </div>
         </div>
