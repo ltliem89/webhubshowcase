@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Pencil, QrCode, Sparkles, Star, Trash2 } from 'lucide-react';
+import { Box, ExternalLink, Pencil, QrCode, Sparkles, Star, Trash2 } from 'lucide-react';
 import { WebProject, Language } from '../types';
 import { translations } from '../translations';
 import { getGoUrl, isValidGoUrl } from '../utils/goLink';

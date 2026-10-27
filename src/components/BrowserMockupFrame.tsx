@@ -13,6 +13,7 @@ interface BrowserMockupFrameProps {
   onClick?: () => void;
   aspectRatio?: 'video' | 'wide' | 'standard';
   lang: Language;
+  is3D?: boolean;
 }
 
 export const BrowserMockupFrame: React.FC<BrowserMockupFrameProps> = ({
@@ -24,6 +25,7 @@ export const BrowserMockupFrame: React.FC<BrowserMockupFrameProps> = ({
   onClick,
   aspectRatio = 'video',
   lang,
+  is3D,
 }) => {
   const t = translations[lang];
   const [imageError, setImageError] = useState(false);

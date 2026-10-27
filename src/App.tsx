@@ -124,12 +124,18 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
         goLink = initMatch.goLink;
       }
 
+      const safeTags: string[] = Array.isArray(p.tags)
+        ? p.tags.filter((t): t is string => typeof t === 'string')
+        : typeof p.tags === 'string'
+        ? (p.tags as string).split(',').map((t) => t.trim()).filter(Boolean)
+        : [];
+
       let isFeatured = p.isFeatured !== undefined ? p.isFeatured : (initMatch?.isFeatured ?? false);
-      if (FEATURED_PROJECT_IDS.has(p.id) || (p.tags && p.tags.some((t) => t.includes('Nổi bật') || t.includes('⭐')))) {
+      if (FEATURED_PROJECT_IDS.has(p.id) || safeTags.some((t) => t.includes('Nổi bật') || t.includes('⭐'))) {
         isFeatured = true;
       }
       let is3D = p.is3D !== undefined ? p.is3D : (initMatch?.is3D ?? false);
-      if (THREE_D_PROJECT_IDS.has(p.id) || (p.tags && p.tags.some((t) => t.toLowerCase() === '3d' || t.toLowerCase().includes('3d')))) {
+      if (THREE_D_PROJECT_IDS.has(p.id) || safeTags.some((t) => t.toLowerCase() === '3d' || t.toLowerCase().includes('3d'))) {
         is3D = true;
       }
       let createdAt = p.createdAt || initMatch?.createdAt || new Date().toISOString();
@@ -144,6 +150,7 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
         goLink,
         isFeatured,
         is3D,
+        tags: safeTags,
         createdAt,
         views,
         likes,
@@ -618,7 +625,7 @@ export default function App() {
           const matchDesc = project.description.toLowerCase().includes(query);
           const matchAuthor = project.authorName.toLowerCase().includes(query);
           const matchUrl = project.url.toLowerCase().includes(query);
-          const matchTags = project.tags.some((tag) =>
+          const matchTags = Array.isArray(project.tags) && project.tags.some((tag) => typeof tag === 'string' &&
             tag.toLowerCase().includes(query)
           );
           if (!matchTitle && !matchDesc && !matchAuthor && !matchUrl && !matchTags) {
