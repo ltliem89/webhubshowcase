@@ -106,15 +106,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-2.5 sm:p-4 shadow-xs mb-5 space-y-2.5 sm:space-y-3">
-      {/* 1. Thanh điều khiển chính: Hai Tab rõ ràng [📤 Bài đăng tải] & [⭐ Nổi tiếng] cùng cụm Icon chế độ xem */}
-      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 flex-wrap sm:flex-nowrap">
-        {/* Bên trái: 2 Tab phân biệt rõ ràng */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2">
+      {/* 1. Thanh điều khiển chính: Các Tab [📤 Bài đăng] & [⭐ Nổi tiếng] & [🚀 Kiến tạo] cùng cụm Icon chế độ xem [☰ Rút gọn] [⊞ Mở rộng] trên CÙNG 1 HÀNG */}
+      <div className="flex items-center justify-between gap-1.5 sm:gap-2 pb-2.5 border-b border-slate-100 flex-nowrap overflow-x-auto no-scrollbar">
+        {/* Bên trái: 3 Tab phân biệt rõ ràng */}
+        <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
           {/* Tab 1: Bài đăng tải của giáo viên/học sinh/người dùng */}
           <button
             id="tab-user-submitted-btn"
             onClick={() => toggleFamousFilter(false)}
-            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+            className={`flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shrink-0 ${
               !filters.onlyFamous && !showGuide
                 ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm shadow-indigo-500/20 ring-2 ring-indigo-300/40'
                 : 'bg-slate-100/90 text-slate-700 border-slate-200/80 hover:bg-slate-200/80 hover:text-slate-900'
@@ -138,7 +138,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <button
             id="tab-famous-btn"
             onClick={() => toggleFamousFilter(true)}
-            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+            className={`flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shrink-0 ${
               filters.onlyFamous && !showGuide
                 ? 'bg-amber-500 text-white border-amber-600 shadow-sm shadow-amber-500/20 ring-2 ring-amber-300/50'
                 : 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100 hover:border-amber-300'
@@ -166,7 +166,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <button
             id="tab-guide-btn"
             onClick={showGuide ? handleCloseGuideTab : handleOpenGuideTab}
-            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+            className={`flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shrink-0 ${
               showGuide
                 ? 'bg-slate-900 text-white border-slate-950 shadow-sm shadow-slate-500/20 ring-2 ring-slate-400/40'
                 : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
@@ -187,17 +187,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
 
         {/*
-          Bên phải: Cụm chế độ xem [☰ Rút gọn] [⊞ Mở rộng]
+          Bên phải: Cụm chế độ xem [☰ Rút gọn] [⊞ Mở rộng] - CÙNG HÀNG VỚI KIẾN TẠO
         */}
-        <div className="flex items-center space-x-2 ml-auto">
-
+        <div className="flex items-center space-x-1 sm:space-x-2 ml-auto shrink-0">
           {/* Cụm chế độ xem: [☰ Rút gọn] & [⊞ Mở rộng] */}
-          <div className="flex items-center space-x-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 p-0.5 sm:p-1 bg-slate-100/90 rounded-xl border border-slate-200/70">
             {/* Rút gọn */}
             <button
               id="view-mode-compact-btn"
               onClick={() => onViewModeChange('compact')}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`p-1 sm:p-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === 'compact'
                   ? 'bg-white text-indigo-700 shadow-xs font-bold'
                   : 'text-slate-500 hover:text-slate-800'
@@ -212,7 +211,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <button
               id="view-mode-expanded-btn"
               onClick={() => onViewModeChange('expanded')}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`p-1 sm:p-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === 'expanded'
                   ? 'bg-white text-indigo-700 shadow-xs font-bold'
                   : 'text-slate-500 hover:text-slate-800'
