@@ -264,10 +264,15 @@ export default function App() {
     }
   }, [projects]);
 
-  // Trạng thái đồng bộ Supabase Cloud
+  // Trạng thái đồng bộ Supabase Cloud & Mạng
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [cloudAuditReport, setCloudAuditReport] = useState<SupabaseAuditReport | null>(null);
   const [sentinelMetrics, setSentinelMetrics] = useState<SentinelMetrics | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean'
+      ? navigator.onLine
+      : true;
+  });
 
   // 4. View Mode & Filter State
   const [viewMode, setViewMode] = useState<ViewMode>('expanded');
@@ -372,15 +377,38 @@ export default function App() {
           // Cập nhật mã băm phiên bản cho Sentinel
           webhubSentinel.setLocalVersionHash(`v20_${reconciled.length}_${report.timestamp}`);
 
+          setIsOnline(true);
           return reconciled;
         });
       }
     } catch (err) {
       console.warn('Sync notice:', err);
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setIsOnline(false);
+      }
     } finally {
       setIsCloudSyncing(false);
     }
   }, []);
+
+  // Lắng nghe sự kiện Online/Offline của trình duyệt
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      syncFromSupabase(true);
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [syncFromSupabase]);
 
   // Tải dữ liệu từ Supabase khi mở app, khởi động Sentinel tình báo & lắng nghe Realtime
   useEffect(() => {
@@ -680,6 +708,7 @@ export default function App() {
         onOpenSubmit={handleOpenSubmitNew}
         pendingCount={pendingCount}
         isCloudSyncing={isCloudSyncing}
+        isOnline={isOnline}
         onRefreshSync={() => syncFromSupabase(true)}
         lastSyncedAt={cloudAuditReport?.lastSyncedAt}
         sentinelMetrics={sentinelMetrics}

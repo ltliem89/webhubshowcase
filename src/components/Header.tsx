@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   ShieldCheck,
@@ -20,6 +20,7 @@ interface HeaderProps {
   onOpenSubmit: ({lastSyncedAt}) => void;
   pendingCount: number;
   isCloudSyncing?: boolean;
+  isOnline?: boolean;
   onRefreshSync?: () => void;
   lastSyncedAt?: string;
   sentinelMetrics?: SentinelMetrics | null;
@@ -48,12 +49,38 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSubmit,
   pendingCount,
   isCloudSyncing = false,
+  isOnline: propIsOnline,
   onRefreshSync,
   lastSyncedAt,
   sentinelMetrics,
 }) => {
   const t = translations[lang];
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+
+  // Theo dõi trạng thái online/offline của thiết bị và trình duyệt
+  const [browserOnline, setBrowserOnline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean'
+      ? navigator.onLine
+      : true;
+  });
+
+  useEffect(() => {
+    const handleOnline = () => setBrowserOnline(true);
+    const handleOffline = () => setBrowserOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Trực tuyến khi cả thiết bị online và không có lỗi từ Supabase/Sentinel
+  const effectiveOnline =
+    (propIsOnline !== undefined ? propIsOnline : browserOnline) &&
+    sentinelMetrics?.status !== 'error';
 
   const currentLangObj = languages.find((l) => l.code === lang) || languages[0];
 
@@ -98,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action controls */}
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            {/* Supabase Live Cloud Status & Sentinel Audit Trigger */}
+            {/* Supabase Cloud Status Indicator: Dấu xanh khi online, đỏ khi off */}
             <button
               id="header-supabase-sync-btn"
               onClick={onRefreshSync}
@@ -107,39 +134,33 @@ export const Header: React.FC<HeaderProps> = ({
                 isCloudSyncing
                   ? 'Đang kết nối và rà soát dữ liệu với Supabase & Vercel...'
                   : sentinelMetrics
-                  ? `[WebHub Sentinel Tình Báo Thông Minh]\n• Trạng thái: ${sentinelMetrics.status === 'synced' ? 'Đã đồng bộ' : sentinelMetrics.status}\n• Đã kiểm tra: ${sentinelMetrics.totalChecks} lần (${sentinelMetrics.notModified304Count} lần 304 Not Modified)\n• Tiết kiệm băng thông: ~${sentinelMetrics.bandwidthSavedKB} KB\n• Kiểm tra gần nhất: ${sentinelMetrics.lastCheckedAt || lastSyncedAt}\nNhấp để rà soát phiên bản ngay tức thì!`
-                  : lastSyncedAt
-                  ? `Supabase Live: Đã rà soát & cập nhật lúc ${lastSyncedAt}. Bấm để rà soát lại.`
-                  : 'Supabase Live: Bấm để rà soát và cập nhật dữ liệu với Supabase'
+                  ? `[WebHub Sentinel Tình Báo Thông Minh]\n• Trạng thái: ${effectiveOnline ? 'Trực tuyến (Online)' : 'Ngoại tuyến (Offline)'}\n• Đã kiểm tra: ${sentinelMetrics.totalChecks} lần (${sentinelMetrics.notModified304Count} lần 304 Not Modified)\n• Tiết kiệm băng thông: ~${sentinelMetrics.bandwidthSavedKB} KB\n• Kiểm tra gần nhất: ${sentinelMetrics.lastCheckedAt || lastSyncedAt}\nNhấp để rà soát phiên bản ngay tức thì!`
+                  : effectiveOnline
+                  ? (lastSyncedAt
+                    ? `Trực tuyến (Online): Đã rà soát & cập nhật lúc ${lastSyncedAt}. Bấm để rà soát lại.`
+                    : 'Trực tuyến (Online): Supabase đã kết nối. Bấm để rà soát dữ liệu.')
+                  : 'Ngoại tuyến (Offline): Mất kết nối mạng hoặc Supabase. Bấm để thử lại.'
               }
-              className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold select-none transition-all cursor-pointer ${
+              className={`w-[34px] h-[34px] flex items-center justify-center rounded-xl border select-none transition-all cursor-pointer shrink-0 ${
                 isCloudSyncing
                   ? 'bg-indigo-50/90 border-indigo-300 text-indigo-700 animate-pulse'
-                  : 'bg-emerald-50 hover:bg-emerald-100/90 border-emerald-200/80 text-emerald-800 hover:shadow-xs'
+                  : effectiveOnline
+                  ? 'bg-emerald-50 hover:bg-emerald-100/90 border-emerald-200/80 text-emerald-800 hover:shadow-xs'
+                  : 'bg-rose-50 hover:bg-rose-100/90 border-rose-200/80 text-rose-700 hover:shadow-xs'
               }`}
+              aria-label={effectiveOnline ? 'Supabase Online' : 'Supabase Offline'}
             >
               {isCloudSyncing ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
-                  <span className="hidden sm:inline">Đang rà soát...</span>
-                </>
+                <RefreshCw className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+              ) : effectiveOnline ? (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
+                </span>
               ) : (
-                <>
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span className="font-semibold text-emerald-800">Supabase Live</span>
-                  {sentinelMetrics && sentinelMetrics.bandwidthSavedKB > 0 ? (
-                    <span className="hidden lg:inline text-[10px] text-emerald-600 font-medium">
-                      (Tiết kiệm {sentinelMetrics.bandwidthSavedKB}KB)
-                    </span>
-                  ) : lastSyncedAt ? (
-                    <span className="hidden lg:inline text-[10px] text-emerald-600 font-normal">
-                      ({lastSyncedAt})
-                    </span>
-                  ) : null}
-                </>
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]"></span>
+                </span>
               )}
             </button>
 
