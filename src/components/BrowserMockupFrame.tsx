@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLink, Globe, Lock, ShieldCheck, User } from 'lucide-react';
+import { Box, ExternalLink, Globe, Lock, ShieldCheck, User } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../translations';
 import { extractDomain, getWebsiteScreenshotUrl, isMshotsTimingThumbnail } from '../utils/screenshot';
@@ -112,6 +112,17 @@ export const BrowserMockupFrame: React.FC<BrowserMockupFrameProps> = ({
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
               <span>{t.httpsSecure}</span>
             </div>
+          </div>
+        )}
+
+        {/* 3D Simulation Floating Badge on Mockup */}
+        {is3D && (
+          <div
+            className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-950/80 backdrop-blur-md border border-cyan-400/50 text-cyan-300 shadow-md text-[10px] font-black tracking-wider select-none pointer-events-none"
+            title="Mô phỏng 3D tương tác"
+          >
+            <Box className="w-3 h-3 text-cyan-300 stroke-[2.5]" />
+            <span>3D</span>
           </div>
         )}
 

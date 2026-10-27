@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Box,
   ExternalLink,
   Heart,
   Pencil,
@@ -94,6 +95,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           onClick={handleVisit}
           aspectRatio="video"
           lang={lang}
+          is3D={project.is3D}
         />
       </div>
 
@@ -111,6 +113,24 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
               {t.educationLevelNames[project.educationLevel] || project.educationLevel}
             </span>
+            {project.isFeatured && (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-300 shadow-xs select-none"
+                title="Dự án tiêu biểu"
+              >
+                <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                <span>Nổi bật</span>
+              </span>
+            )}
+            {project.is3D && (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-xs border border-cyan-400/30 select-none"
+                title="Mô phỏng 3D tương tác"
+              >
+                <Box className="w-3 h-3 text-cyan-200 stroke-[2.5]" />
+                <span>3D</span>
+              </span>
+            )}
             <span className="ml-auto text-[10px] text-slate-400 font-medium">
               {formatTimeAgo(project.createdAt, lang)}
             </span>
@@ -119,10 +139,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           {/* Title */}
           <h3
             onClick={handleVisit}
-            className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors cursor-pointer"
+            className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors cursor-pointer flex items-center gap-1.5"
             title={project.title}
           >
-            {project.title}
+            <span className="truncate">{project.title}</span>
+            {project.isFeatured && (
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0 inline-block drop-shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+            )}
           </h3>
 
           {/* Description */}

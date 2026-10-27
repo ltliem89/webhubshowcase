@@ -85,6 +85,7 @@ export const TimelineLayerCard: React.FC<TimelineLayerCardProps> = ({
           onClick={handleVisit}
           aspectRatio="video"
           lang={lang}
+          is3D={project.is3D}
         />
       </div>
 
@@ -102,6 +103,24 @@ export const TimelineLayerCard: React.FC<TimelineLayerCardProps> = ({
             <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
               {t.educationLevelNames[project.educationLevel] || project.educationLevel}
             </span>
+            {project.isFeatured && (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-300 shadow-xs select-none"
+                title="Dự án tiêu biểu"
+              >
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                <span>Nổi bật</span>
+              </span>
+            )}
+            {project.is3D && (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-black tracking-wider bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-xs border border-cyan-400/30 select-none"
+                title="Mô phỏng 3D tương tác"
+              >
+                <Box className="w-3.5 h-3.5 text-cyan-200 stroke-[2.5]" />
+                <span>3D</span>
+              </span>
+            )}
           </div>
 
           <h3

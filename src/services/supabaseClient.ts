@@ -2,7 +2,28 @@ export const FEATURED_PROJECT_IDS = new Set([
   'proj-roitudo',
   'proj-camungdientu',
   'proj-nangluonganhsang',
+  'proj-1793065227974',
+  'proj-thaukinh',
 ]);
+
+export const THREE_D_PROJECT_IDS = new Set([
+  'proj-roitudo',
+  'proj-camungdientu',
+  'proj-nangluonganhsang',
+  'proj-1793065227974',
+  'proj-thaukinh',
+]);
+
+export function is3DProject(project: Partial<WebProject>): boolean {
+  if (project.is3D === true) return true;
+  if (project.id && THREE_D_PROJECT_IDS.has(String(project.id))) return true;
+  if (Array.isArray(project.tags)) {
+    return project.tags.some(
+      (t) => typeof t === 'string' && (t.toLowerCase() === '3d' || t.toLowerCase().includes('3d'))
+    );
+  }
+  return false;
+}
 
 import { createClient } from '@supabase/supabase-js';
 import { WebProject } from '../types';
@@ -39,8 +60,14 @@ export function rowToProject(row: any): WebProject {
     isUserSubmission: Boolean(row.is_user_submission),
     isFeatured: Boolean(
       row.is_featured === true ||
+      FEATURED_PROJECT_IDS.has(String(row.id)) ||
       (Array.isArray(row.tags) && row.tags.some((t: string) => typeof t === 'string' && (t.includes('Nổi bật') || t.includes('⭐')))) ||
       (row.is_featured === undefined && (!row.tags || row.tags.length === 0) && FEATURED_PROJECT_IDS.has(String(row.id)))
+    ),
+    is3D: Boolean(
+      row.is_3d === true ||
+      THREE_D_PROJECT_IDS.has(String(row.id)) ||
+      (Array.isArray(row.tags) && row.tags.some((t: string) => typeof t === 'string' && (t.toLowerCase() === '3d' || t.toLowerCase().includes('3d'))))
     ),
     goLink: row.go_link || '',
   };
@@ -67,6 +94,7 @@ export function projectToRow(project: WebProject): any {
     views: project.views || 0,
     likes: project.likes || 0,
     is_user_submission: Boolean(project.isUserSubmission),
+    is_3d: Boolean(project.is3D),
     go_link: project.goLink || '',
   };
 }

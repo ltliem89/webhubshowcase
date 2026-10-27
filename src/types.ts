@@ -44,6 +44,7 @@ export interface WebProject {
   isFamous?: boolean; // Website mô phỏng nổi tiếng (PhET, GeoGebra, NetSim...)
   isUserSubmission?: boolean;
   isFeatured?: boolean; // Bài do NGƯỜI DÙNG đăng lên, admin đã duyệt → thuộc tab "Bài đăng tải"
+  is3D?: boolean; // Mô phỏng 3D tương tác
 }
 
 export const LANGUAGE_CODES = [

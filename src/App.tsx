@@ -40,6 +40,8 @@ import {
   SentinelMetrics,
 } from './services/webhubSentinel';
 import {
+  FEATURED_PROJECT_IDS,
+  THREE_D_PROJECT_IDS,
   fetchProjectsFromSupabase,
   fetchSubmissionsFromSupabase,
   submitToSupabase,
@@ -123,6 +125,13 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
       }
 
       let isFeatured = p.isFeatured !== undefined ? p.isFeatured : (initMatch?.isFeatured ?? false);
+      if (FEATURED_PROJECT_IDS.has(p.id) || (p.tags && p.tags.some((t) => t.includes('Nổi bật') || t.includes('⭐')))) {
+        isFeatured = true;
+      }
+      let is3D = p.is3D !== undefined ? p.is3D : (initMatch?.is3D ?? false);
+      if (THREE_D_PROJECT_IDS.has(p.id) || (p.tags && p.tags.some((t) => t.toLowerCase() === '3d' || t.toLowerCase().includes('3d')))) {
+        is3D = true;
+      }
       let createdAt = p.createdAt || initMatch?.createdAt || new Date().toISOString();
       let views = typeof p.views === 'number' ? p.views : (initMatch?.views ?? 0);
       let likes = typeof p.likes === 'number' ? p.likes : (initMatch?.likes ?? 0);
@@ -134,6 +143,7 @@ const sanitizeAndMigrateProjects = (loadedList: WebProject[]): WebProject[] => {
         previewImage,
         goLink,
         isFeatured,
+        is3D,
         createdAt,
         views,
         likes,

@@ -82,6 +82,7 @@ export function auditAndReconcileWithCloud(
         'status',
         'category',
         'educationLevel',
+        'is3D',
       ];
 
       for (const field of fieldsToCheck) {

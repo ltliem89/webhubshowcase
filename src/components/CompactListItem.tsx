@@ -83,6 +83,16 @@ export const CompactListItem: React.FC<CompactListItemProps> = ({
           </span>
         )}
 
+        {project.is3D && (
+          <span
+            title="Mô phỏng 3D tương tác"
+            className="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[10px] font-black tracking-wider shrink-0 flex items-center gap-0.5 border border-cyan-400/30 select-none shadow-xs"
+          >
+            <Box className="w-3 h-3 text-cyan-200 stroke-[2.5]" />
+            <span>3D</span>
+          </span>
+        )}
+
         <h4
           onClick={handleVisit}
           className="font-bold text-slate-900 text-xs sm:text-sm truncate hover:text-indigo-600 cursor-pointer shrink-1 min-w-[80px]"
